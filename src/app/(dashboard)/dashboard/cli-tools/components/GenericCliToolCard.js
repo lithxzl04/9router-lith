@@ -355,7 +355,7 @@ export default function GenericCliToolCard({
         return [
           {
             filename: "~/.forge/config.toml",
-            content: `# Forge config — managed by 9Router-Plinian\n\n[openai]\napi_key = "${key}"\nbase_url = "${effectiveUrl}"\nmodel = "${mod}"`,
+            content: `# Forge config — managed by 9Router-Kiyoshi\n\n[openai]\napi_key = "${key}"\nbase_url = "${effectiveUrl}"\nmodel = "${mod}"`,
           },
         ];
       case "smelt":
@@ -369,7 +369,7 @@ export default function GenericCliToolCard({
         return [
           {
             filename: "~/.codewhale/config.toml",
-            content: `# CodeWhale config — managed by 9Router-Plinian\n\n[openai]\nbase_url = "${effectiveUrl}"\napi_key = "${key}"\nmodel = "${mod}"`,
+            content: `# CodeWhale config — managed by 9Router-Kiyoshi\n\n[openai]\nbase_url = "${effectiveUrl}"\napi_key = "${key}"\nmodel = "${mod}"`,
           },
         ];
       default:
@@ -536,7 +536,7 @@ export default function GenericCliToolCard({
                             return (
                               <div
                                 key={modelId}
-                                className="flex w-full flex-wrap items-center gap-1.5 rounded border border-border bg-bg-secondary px-2 py-1 text-xs text-text-main"
+                                className="flex w-full flex-wrap items-center gap-1.5 rounded-control bg-surface-2 px-2 py-1 text-xs text-text-main"
                               >
                                 <span className="min-w-0 flex-1 basis-40 truncate">{modelId}</span>
                                 <select

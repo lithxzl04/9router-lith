@@ -12,8 +12,6 @@ import useSettingsStore from "@/store/settingsStore";
 import Button from "./Button";
 import { ConfirmModal } from "./Modal";
 import NineRemotePromoModal from "./NineRemotePromoModal";
-import { useTheme } from "@/shared/hooks/useTheme";
-import { PALETTES } from "@/shared/constants/config";
 
 // const VISIBLE_MEDIA_KINDS = ["embedding", "image", "imageToText", "tts", "stt", "webSearch", "webFetch", "video", "music"];
 const VISIBLE_MEDIA_KINDS = ["embedding", "image", "video", "tts", "stt", "systemone"];
@@ -21,11 +19,14 @@ const VISIBLE_MEDIA_KINDS = ["embedding", "image", "video", "tts", "stt", "syste
 const COMBINED_WEB_ITEM = { id: "web", label: "Web Fetch & Search", icon: "travel_explore", href: "/dashboard/media-providers/web" };
 
 const navItems = [
+  { href: "/dashboard/overview", label: "Server Overview", icon: "monitoring" },
   { href: "/dashboard/endpoint", label: "Endpoint & Key", icon: "api" },
+  { href: "/dashboard/api-keys", label: "Access Keys", icon: "vpn_key" },
   { href: "/dashboard/providers", label: "Providers", icon: "dns" },
   // { href: "/dashboard/basic-chat", label: "Basic Chat", icon: "chat" }, // Hidden
   { href: "/dashboard/combos", label: "Combo & Vision Adapter", icon: "layers" },
   { href: "/dashboard/usage", label: "Usage", icon: "bar_chart" },
+  { href: "/dashboard/pulse", label: "Provider Pulse", icon: "vital_signs" },
   { href: "/dashboard/quota", label: "Quota Tracker", icon: "data_usage" },
   { href: "/dashboard/token-saver", label: "Token Saver", icon: "savings" },
   // { href: "/dashboard/pxpipe", label: "PXPIPE", icon: "image" },
@@ -57,7 +58,6 @@ export default function Sidebar({ onClose }) {
   const [shutdownCountdown, setShutdownCountdown] = useState(0);
   const [enableTranslator, setEnableTranslator] = useState(false);
    const { copied, copy } = useCopyToClipboard(2000);
-   const { palette, setPalette } = useTheme();
 
   const INSTALL_CMD = UPDATER_CONFIG.installCmdForPlatform(typeof navigator !== "undefined" ? navigator.platform : "") || UPDATER_CONFIG.installCmdLatest;
 
@@ -120,108 +120,76 @@ export default function Sidebar({ onClose }) {
 
   return (
     <>
-      <aside className="flex w-72 flex-col border-r border-border-subtle bg-vibrancy backdrop-blur-xl transition-colors duration-300 min-h-full">
-         {/* Palette switcher (jars-ui port) — 5 dots, one per palette.
-             Each dot keeps its macOS "rest" color when inactive; when a
-             palette is active its dot shows that palette's accent + a ring.
-             Clicking an inactive dot switches palette; the active one is a
-             no-op (no surprise reset). Sizes: 24px hit area / 16px dot / 4px gap. */}
-         <div className="flex items-center gap-1 px-6 pt-5 pb-2" title="Klik dot untuk ganti palette">
-           {["amber", "sea", "rose", "teal", "violet"].map((key) => {
-             const active = palette === key;
-             // Rest colors: the 3 original macOS traffic-lights + 2 new ones
-            // Match each key directly to its actual palette swatch so visual dot == active color!
-            const color = PALETTES[key]?.swatch || "#8B5CF6";
-             return (
-               <button
-                 key={key}
-                 type="button"
-                 onClick={() => { if (!active) setPalette(key); }}
-                 className="group/dot relative flex items-center justify-center size-6 rounded-full transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 cursor-pointer"
-                 title={active ? `${PALETTES[key].label} (aktif)` : `Ganti ke ${PALETTES[key].label}`}
-                 aria-label={`Palette ${PALETTES[key].label}`}
-                 aria-pressed={active}
-               >
-                 {/* swatch disc — bordered so it reads as a button, ringed when active */}
-                 <span
-                   className="size-4 rounded-full border border-black/10 dark:border-white/10 transition-all"
-                   style={{
-                     backgroundColor: color,
-                     boxShadow: active ? `0 0 0 2px var(--color-bg), 0 0 0 4px ${PALETTES[key].swatch}` : "none",
-                   }}
-                 />
-               </button>
-             );
-           })}
-         </div>
-
-
+      <aside className="flex h-full w-72 flex-col border-r border-border-subtle bg-sidebar">
         {/* Logo */}
-        <div className="px-6 py-4 flex flex-col gap-2">
+        <div className="px-5 py-5 flex flex-col gap-2 shrink-0">
           <Link href="/dashboard" className="flex items-center gap-3">
-            <div className="flex items-center justify-center size-9 rounded-[10px] bg-gradient-to-br from-brand-500 to-brand-700 shadow-[var(--shadow-warm)]">
+            <div className="flex items-center justify-center size-9 rounded-[10px] bg-brand-800">
               <span className="material-symbols-outlined text-white text-[20px]">hub</span>
             </div>
-            <div className="flex flex-col">
-              <h1 className="text-lg font-semibold tracking-tight text-text-main">
+            <div className="flex flex-col min-w-0">
+              <h1 className="text-[15px] font-semibold tracking-tight text-text-main truncate">
                 {APP_CONFIG.name}
               </h1>
-              <span className="text-xs text-text-muted">v{APP_CONFIG.version}</span>
+              <span className="text-[11px] text-text-muted">v{APP_CONFIG.version}</span>
+              <span className="text-[10px] text-text-subtle font-medium block">
+                based on 9router-plinian
+              </span>
             </div>
           </Link>
           {/* Update status — always visible when the check has resolved:
               a banner for old builds pointing at the latest release, or a
               subtle "up to date" line on current installs. */}
           {updateInfo && (updateInfo.hasUpdate ? (
-            <div className="flex flex-col gap-1.5 rounded p-1 -m-1">
-              <span className="text-xs font-semibold text-green-600 dark:text-amber-500">
-                ↑ New version available: v{updateInfo.latestVersion}
+            <div className="flex flex-col gap-1.5 rounded-control bg-brass-100 dark:bg-surface-2 p-2.5 mt-1">
+              <span className="text-[11px] font-semibold text-brass-700 dark:text-brass-300">
+                New version available: v{updateInfo.latestVersion}
               </span>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setShowUpdateModal(true)}
-                  className="px-2 py-1 rounded bg-green-600 hover:bg-green-700 dark:bg-amber-500 dark:hover:bg-amber-600 text-white text-[11px] font-semibold transition-colors cursor-pointer"
+                  className="px-2 py-1 rounded-chip bg-brand-800 hover:bg-brand-700 text-white text-[11px] font-semibold transition-colors cursor-pointer"
                 >
-                  Update now
+                  Update
                 </button>
                 <button
                   onClick={() => copy(INSTALL_CMD)}
                   title="Copy install command"
-                  className="flex-1 text-left hover:opacity-80 transition-opacity cursor-pointer min-w-0"
+                  className="flex-1 text-left min-w-0 cursor-pointer"
                 >
-                  <code className="block text-[10px] text-green-600/80 dark:text-amber-400/70 font-mono truncate">
-                    {copied ? "✓ copied!" : INSTALL_CMD}
+                  <code className="block text-[10px] text-brass-700 dark:text-brass-300 font-mono truncate">
+                    {copied ? "copied" : INSTALL_CMD}
                   </code>
                 </button>
               </div>
             </div>
           ) : (
-            <div className="rounded p-1 -m-1">
-              <span className="text-[11px] text-text-muted/70">
-                ✓ v{updateInfo.currentVersion} — up to date
+            <div className="px-1">
+              <span className="text-[11px] text-text-subtle">
+                v{updateInfo.currentVersion} up to date
               </span>
             </div>
           ))}
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-4 py-2 space-y-0.5 overflow-y-auto custom-scrollbar">
+        <nav className="flex-1 min-h-0 px-4 py-2 space-y-0.5 overflow-y-auto overscroll-contain custom-scrollbar">
           {navItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
               onClick={onClose}
               className={cn(
-                "flex items-center gap-3 px-3 py-1 rounded-lg transition-all group",
+                "flex items-center gap-3 px-3 py-2 sm:py-1.5 min-h-[38px] rounded-control transition-colors group",
                 isActive(item.href)
-                  ? "bg-primary/10 text-primary"
+                  ? "bg-brand-800 text-white"
                   : "text-text-muted hover:bg-surface-2 hover:text-text-main"
               )}
             >
               <span
                 className={cn(
                   "material-symbols-outlined text-[18px]",
-                  isActive(item.href) ? "fill-1" : "group-hover:text-primary transition-colors"
+                  isActive(item.href) ? "fill-1" : "group-hover:text-brass-500 transition-colors"
                 )}
               >
                 {item.icon}
@@ -240,9 +208,9 @@ export default function Sidebar({ onClose }) {
             <button
               onClick={() => setMediaOpen((v) => !v)}
               className={cn(
-                "w-full flex items-center gap-3 px-3 py-1 rounded-lg transition-all group",
+                "w-full flex items-center gap-3 px-3 py-2 sm:py-1.5 min-h-[38px] rounded-control transition-colors group",
                 pathname.startsWith("/dashboard/media-providers")
-                  ? "bg-primary/10 text-primary"
+                  ? "bg-brand-800 text-white"
                   : "text-text-muted hover:bg-surface-2 hover:text-text-main"
               )}
             >
@@ -260,9 +228,9 @@ export default function Sidebar({ onClose }) {
                     href={`/dashboard/media-providers/${kind.id}`}
                     onClick={onClose}
                     className={cn(
-                      "flex items-center gap-3 px-4 py-1 rounded-lg transition-all group",
+                      "flex items-center gap-3 px-4 py-2 sm:py-1.5 min-h-[36px] rounded-control transition-colors group",
                       pathname.startsWith(`/dashboard/media-providers/${kind.id}`)
-                        ? "bg-primary/10 text-primary"
+                        ? "bg-brand-800 text-white"
                         : "text-text-muted hover:bg-surface-2 hover:text-text-main"
                     )}
                   >
@@ -275,9 +243,9 @@ export default function Sidebar({ onClose }) {
                   href={COMBINED_WEB_ITEM.href}
                   onClick={onClose}
                   className={cn(
-                    "flex items-center gap-3 px-4 py-1 rounded-lg transition-all group",
+                    "flex items-center gap-3 px-4 py-2 sm:py-1.5 min-h-[36px] rounded-control transition-colors group",
                     pathname.startsWith(COMBINED_WEB_ITEM.href)
-                      ? "bg-primary/10 text-primary"
+                      ? "bg-brand-800 text-white"
                       : "text-text-muted hover:bg-surface-2 hover:text-text-main"
                   )}
                 >
@@ -293,16 +261,16 @@ export default function Sidebar({ onClose }) {
                 href={item.href}
                 onClick={onClose}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-1 rounded-lg transition-all group",
+                  "flex items-center gap-3 px-3 py-2 sm:py-1.5 min-h-[38px] rounded-control transition-colors group",
                   isActive(item.href)
-                    ? "bg-primary/10 text-primary"
+                    ? "bg-brand-800 text-white"
                     : "text-text-muted hover:bg-surface-2 hover:text-text-main"
                 )}
               >
                 <span
                   className={cn(
                     "material-symbols-outlined text-[18px]",
-                    isActive(item.href) ? "fill-1" : "group-hover:text-primary transition-colors"
+                    isActive(item.href) ? "fill-1" : "group-hover:text-brass-500 transition-colors"
                   )}
                 >
                   {item.icon}
@@ -320,16 +288,16 @@ export default function Sidebar({ onClose }) {
                   href={item.href}
                   onClick={onClose}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-1 rounded-lg transition-all group",
+                    "flex items-center gap-3 px-3 py-2 sm:py-1.5 min-h-[38px] rounded-control transition-colors group",
                     isActive(item.href)
-                      ? "bg-primary/10 text-primary"
+                      ? "bg-brand-800 text-white"
                       : "text-text-muted hover:bg-surface-2 hover:text-text-main"
                   )}
                 >
                   <span
                     className={cn(
                       "material-symbols-outlined text-[18px]",
-                      isActive(item.href) ? "fill-1" : "group-hover:text-primary transition-colors"
+                      isActive(item.href) ? "fill-1" : "group-hover:text-brass-500 transition-colors"
                     )}
                   >
                     {item.icon}
@@ -346,11 +314,11 @@ export default function Sidebar({ onClose }) {
               rel="noreferrer"
               onClick={onClose}
               className={cn(
-                "flex items-center gap-3 px-3 py-1 rounded-lg transition-all group w-full",
+                "flex items-center gap-3 px-3 py-2 sm:py-1.5 min-h-[38px] rounded-control transition-colors group w-full",
                 "text-text-muted hover:bg-surface-2 hover:text-text-main"
               )}
             >
-              <span className="material-symbols-outlined text-[18px] group-hover:text-primary transition-colors">
+              <span className="material-symbols-outlined text-[18px] group-hover:text-brass-500 transition-colors">
                 computer
               </span>
               <span className="text-[13px] font-medium">9Remote</span>
@@ -366,14 +334,31 @@ export default function Sidebar({ onClose }) {
               rel="noreferrer"
               onClick={onClose}
               className={cn(
-                "flex items-center gap-3 px-3 py-1 rounded-lg transition-all group w-full",
+                "flex items-center gap-3 px-3 py-2 sm:py-1.5 min-h-[38px] rounded-control transition-colors group w-full",
                 "text-text-muted hover:bg-surface-2 hover:text-text-main"
               )}
             >
-              <span className="material-symbols-outlined text-[18px] group-hover:text-primary transition-colors">
+              <span className="material-symbols-outlined text-[18px] group-hover:text-brass-500 transition-colors">
                 translate
               </span>
               <span className="text-[13px] font-medium">9English</span>
+            </a>
+
+            {/* Attribution CTA — this build is a fork of 9Router-Kiyoshi */}
+            <a
+              href={APP_CONFIG.basedOn.url}
+              target="_blank"
+              rel="noreferrer"
+              onClick={onClose}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2 sm:py-1.5 min-h-[38px] rounded-control transition-colors group w-full",
+                "text-text-muted hover:bg-surface-2 hover:text-text-main"
+              )}
+            >
+              <span className="material-symbols-outlined text-[18px] group-hover:text-brass-500 transition-colors">
+                fork_right
+              </span>
+              <span className="text-[13px] font-medium">{APP_CONFIG.basedOn.label}</span>
             </a>
 
             {/* Settings */}
@@ -381,16 +366,16 @@ export default function Sidebar({ onClose }) {
               href="/dashboard/profile"
               onClick={onClose}
               className={cn(
-                "flex items-center gap-3 px-3 py-1 rounded-lg transition-all group",
+                "flex items-center gap-3 px-3 py-2 sm:py-1.5 min-h-[38px] rounded-control transition-colors group",
                 isActive("/dashboard/profile")
-                  ? "bg-primary/10 text-primary"
+                  ? "bg-brand-800 text-white"
                   : "text-text-muted hover:bg-surface-2 hover:text-text-main"
               )}
             >
               <span
                 className={cn(
                   "material-symbols-outlined text-[18px]",
-                  isActive("/dashboard/profile") ? "fill-1" : "group-hover:text-primary transition-colors"
+                  isActive("/dashboard/profile") ? "fill-1" : "group-hover:text-brass-500 transition-colors"
                 )}
               >
                 settings
@@ -408,7 +393,7 @@ export default function Sidebar({ onClose }) {
         isOpen={showUpdateModal}
         onClose={() => setShowUpdateModal(false)}
         onConfirm={handleUpdate}
-        title="Update 9Router-Plinian"
+        title="Update 9Router-Kiyoshi"
         message={`Show install command for v${updateInfo?.latestVersion || ""}? You can copy it and shutdown to install manually.`}
         confirmText="Show Command"
         cancelText="Cancel"
@@ -459,7 +444,7 @@ function ManualUpdatePanel({ latestVersion, installCmd, copied, onCopyAndShutdow
           <span className="material-symbols-outlined text-[24px]">content_copy</span>
         </div>
         <div>
-          <h2 className="text-lg font-semibold">Update 9Router-Plinian{latestVersion ? ` to v${latestVersion}` : ""}</h2>
+          <h2 className="text-lg font-semibold">Update 9Router-Kiyoshi{latestVersion ? ` to v${latestVersion}` : ""}</h2>
           <p className="text-xs text-white/60">
             {isDisconnected
               ? "Server stopped. Paste the command into a terminal to install."

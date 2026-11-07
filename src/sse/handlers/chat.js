@@ -24,9 +24,16 @@ import { detectFormatByEndpoint } from "open-sse/translator/formats.js";
 import { resolveSessionIdentity } from "open-sse/utils/sessionManager.js";
 import * as log from "../utils/logger.js";
 import { updateProviderCredentials, checkAndRefreshToken } from "../services/tokenRefresh.js";
-import { getProjectIdForConnection } from "open-sse/services/projectId.js";
+import { getProjectIdForConnection, isPlaceholderProjectId } from "open-sse/services/projectId.js";
+import {
+  fingerprintAntigravityRequest,
+  getActiveAntigravityRefusal,
+  rememberAntigravity429Refusal,
+  buildAntigravityRefusalReplayResponse,
+  isAntigravityRefusalReplay,
+} from "open-sse/services/antigravity429Guard.js";
 import { stripModelContextMarker } from "open-sse/utils/modelMarkers.js";
-import { getKeyAccessContext, enforceKeyAccess, filterAdapterModels } from "../services/keyAccess.js";
+import { getKeyAccessContext, enforceKeyAccess, enforceKeyQuota, filterAdapterModels, isInjectionAllowedForKey } from "../services/keyAccess.js";
 import { resolveSmartChoice } from "../services/systemoneRouter.js";
 
 /**
@@ -112,6 +119,10 @@ export async function handleChat(request, clientRawRequest = null) {
     log.warn("CHAT", "Missing model");
     return errorResponse(HTTP_STATUS.BAD_REQUEST, "Missing model");
   }
+
+  // Per-key quota gate: drop requests immediately when a key is over its token limit
+  const keyQuotaDenied = await enforceKeyQuota(request);
+  if (keyQuotaDenied) return keyQuotaDenied;
 
   // Per-key access control: a restricted key may call only its listed combos and
   // models. Checked once on the requested target, before bypass, combo expansion
@@ -322,8 +333,10 @@ async function handleSingleModelChat(
     // Account selection shown in the unified "▶" line (acc:...)
     const refreshedCredentials = await checkAndRefreshToken(provider, credentials);
 
-    // Ensure real project ID is available for providers that need it (P0 fix: cold miss)
-    if ((provider === "antigravity" || provider === "gemini-cli") && !refreshedCredentials.projectId) {
+    // Resolve the real Cloud Code project id. `aicode-consumers` is the id
+    // loadCodeAssist returns for Antigravity accounts, so it is a valid project,
+    // not a placeholder — keep it. Only a genuinely absent id triggers discovery.
+    if ((provider === "antigravity" || provider === "gemini-cli") && isPlaceholderProjectId(refreshedCredentials.projectId)) {
       const pid = await getProjectIdForConnection(credentials.connectionId, refreshedCredentials.accessToken, provider);
       if (pid) {
         refreshedCredentials.projectId = pid;
@@ -332,9 +345,55 @@ async function handleSingleModelChat(
       }
     }
 
+    // Never send a project id we made up. Google links accounts by project and a
+    // fabricated one is a stronger abuse signal than skipping the request: it is
+    // the difference between "this account has no Cloud Code project yet" and
+    // "this client is inventing identifiers". Fail locally instead.
+    if (provider === "antigravity" && !refreshedCredentials.projectId) {
+      log.warn("AUTH", `${credentials.connectionName || credentials.connectionId} has no Cloud Code project id — refusing to send a fabricated one`);
+      return errorResponse(
+        HTTP_STATUS.BAD_REQUEST,
+        `[${provider}/${model}] This account has no Google Cloud Code project id. ` +
+        `Reconnect the OAuth account and finish Gemini Code Assist onboarding, then retry. ` +
+        `No request was sent upstream.`
+      );
+    }
+
+    // ─── Anti-ban: Antigravity refusal replay guard ─────────────────────────
+    // Cloud Code answers some requests with 429 because it refuses the request
+    // CONTENT (e.g. a system-prompt identity line), not because the account is
+    // out of quota. Without this guard one refused prompt becomes ~45 upstream
+    // refused calls in 20 minutes (executor retries x chat retries x client SDK
+    // retries) — the exact burst that gets an account flagged.
+    // Identical repeats are answered locally with a synthetic 429, zero upstream.
+    let antigravityGuardKey = null;
+    if (provider === "antigravity" && (model || body?.model)) {
+      antigravityGuardKey = fingerprintAntigravityRequest(credentials.connectionId, {
+        model,
+        request: {
+          systemInstruction: body?.system ?? body?.messages?.filter(m => m?.role === "system") ?? null,
+          contents: body?.messages ?? body?.contents ?? body?.input ?? null,
+          tools: body?.tools ?? null,
+        },
+      });
+      const active = getActiveAntigravityRefusal(antigravityGuardKey);
+      if (active) {
+        log.warn("AG_GUARD", `${credentials.connectionId.slice(0, 8)} | replay-blocked ${Math.ceil(active.remainingMs / 1000)}s (strike ${active.strikes})`);
+        const replay = buildAntigravityRefusalReplayResponse(active);
+        return new Response(replay.body, {
+          status: replay.status,
+          statusText: replay.statusText,
+          headers: replay.headers,
+        });
+      }
+    }
+
     // Use shared chatCore
     const chatSettings = await getSettings();
     const providerThinking = (chatSettings.providerThinking || {})[provider] || null;
+    // Per-key injection switch: a key created with injection off ships the
+    // request untouched, regardless of the global settings.
+    const keyInjectionAllowed = await isInjectionAllowedForKey(request);
     const result = await handleChatCore({
       body: { ...body, model: `${provider}/${model}` },
       modelInfo: { provider, model },
@@ -350,6 +409,9 @@ async function handleSingleModelChat(
       headroomUrl: chatSettings.headroomUrl || DEFAULT_HEADROOM_URL,
       headroomCompressUserMessages: !!chatSettings.headroomCompressUserMessages,
       headroomTimeoutMs: parseInt(chatSettings.headroomTimeoutMs, 10) || 10000,
+      // Token savers stay on for every key, including keys with injection off:
+      // they compress the request instead of changing the model's voice, and
+      // turning them off would make an injection-free key cost more.
       cavemanEnabled: !!chatSettings.cavemanEnabled,
       cavemanLevel: chatSettings.cavemanLevel || "full",
       ponytailEnabled: !!chatSettings.ponytailEnabled,
@@ -359,11 +421,13 @@ async function handleSingleModelChat(
       // Backward-compat: if the new key is unset but the old
       // plinian*/godmode* keys are present, inherit their values so
       // existing persisted settings still work.
-      injectionEnabled: dashboardPayloadOverride
-        ? true
-        : chatSettings.injectionEnabled !== undefined
-          ? !!chatSettings.injectionEnabled
-          : (!!chatSettings.plinianEnabled || !!chatSettings.godmodeEnabled),
+      injectionEnabled: !keyInjectionAllowed
+        ? false
+        : dashboardPayloadOverride
+          ? true
+          : chatSettings.injectionEnabled !== undefined
+            ? !!chatSettings.injectionEnabled
+            : (!!chatSettings.plinianEnabled || !!chatSettings.godmodeEnabled),
       injectionRegisterLevel: chatSettings.injectionRegisterLevel
         || chatSettings.plinianLevel
         || "standard",
@@ -401,7 +465,8 @@ async function handleSingleModelChat(
       injectionSkillRouterCustom:
         typeof chatSettings.injectionSkillRouterCustom === "string" ? chatSettings.injectionSkillRouterCustom : "",
       // Upstream v0.5.111: user-authored system prompt, independent of the built-in savers.
-      customPromptEnabled: !!chatSettings.customPromptEnabled,
+      // Suppressed for keys whose injection switch is off.
+      customPromptEnabled: keyInjectionAllowed && !!chatSettings.customPromptEnabled,
       customPrompt: chatSettings.customPrompt || "",
       pxpipeEnabled: !!chatSettings.pxpipeEnabled,
       pxpipeMinChars: chatSettings.pxpipeMinChars,
@@ -429,6 +494,14 @@ async function handleSingleModelChat(
     });
 
     if (result.success) return result.response;
+
+    // Anti-ban: record 429 refusal for this exact content so client SDK retries
+    // are answered locally rather than hitting Google repeatedly.
+    if (provider === "antigravity" && antigravityGuardKey && result.status === 429) {
+      const hintMs = result.resetsAtMs ? Math.max(0, result.resetsAtMs - Date.now()) : null;
+      const remembered = rememberAntigravity429Refusal(antigravityGuardKey, hintMs);
+      log.warn("AG_GUARD", `${credentials.connectionId.slice(0, 8)} | remembered 429 content refusal for ${Math.round(remembered.blockMs / 1000)}s (strike ${remembered.strikes})`);
+    }
 
     // Antigravity 409/429: refresh live quota to get exact resetAt before locking
     let quotaResetMs = null;

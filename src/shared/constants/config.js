@@ -2,9 +2,14 @@ import pkg from "../../../package.json" with { type: "json" };
 
 // App configuration
 export const APP_CONFIG = {
-  name: "9Router-Plinian",
-  description: "AI routing gateway — red-team playground & steering research",
+  name: "9Router-Kiyoshi",
+  description: "AI routing gateway — private bench build (based on 9Router-Plinian)",
   version: pkg.version,
+  // Attribution shown in the sidebar footer.
+  basedOn: {
+    label: "Based on 9Router-Plinian",
+    url: "https://github.com/Azhar457/9router",
+  },
 };
 
 // GitHub configuration
@@ -22,7 +27,7 @@ const GH_LATEST_URL = `https://github.com/Azhar457/9router/releases/latest/downl
 // - pwsh: native PowerShell one-liner (curl.exe + ; separators)
 // - posix path via $TMPDIR so macOS + Linux both work
 export const UPDATER_CONFIG = {
-  npmPackageName: "9router-plinian",
+  npmPackageName: "9router-kiyoshi",
   // GitHub is the update source of truth (npm is deprecated / dual-use-blocked).
   // The updater downloads this tarball and runs `npm i -g <file>`.
   ghRepo: "Azhar457/9router",
@@ -30,17 +35,17 @@ export const UPDATER_CONFIG = {
   ghUrl: GH_LATEST_URL,
   // Backwards-compat default (bash). Kept as-is so existing consumers don't
   // break; Sidebar now picks the OS-specific one via `installCmdForPlatform`.
-  installCmd: `curl -fsSL ${GH_LATEST_URL} -o /tmp/9router-plinian.tgz && npm i -g /tmp/9router-plinian.tgz`,
-  installCmdLatest: `curl -fsSL ${GH_LATEST_URL} -o /tmp/9router-plinian.tgz && npm i -g /tmp/9router-plinian.tgz`,
+  installCmd: `curl -fsSL ${GH_LATEST_URL} -o /tmp/9router-kiyoshi.tgz && npm i -g /tmp/9router-kiyoshi.tgz`,
+  installCmdLatest: `curl -fsSL ${GH_LATEST_URL} -o /tmp/9router-kiyoshi.tgz && npm i -g /tmp/9router-kiyoshi.tgz`,
   // Command templates per platform. Each returns a string the user can
   // copy+paste into the matching shell and it will work.
   installCmdByPlatform: {
     // bash / zsh / sh (macOS Terminal, Ubuntu, etc)
-    bash: `curl -fsSL ${GH_LATEST_URL} -o /tmp/9router-plinian.tgz && npm i -g /tmp/9router-plinian.tgz`,
+    bash: `curl -fsSL ${GH_LATEST_URL} -o /tmp/9router-kiyoshi.tgz && npm i -g /tmp/9router-kiyoshi.tgz`,
     // cmd.exe (Windows) — powershell one-liner, no &&, no /tmp
-    cmd: `powershell -NoProfile -Command "curl.exe -fsSL ${GH_LATEST_URL} -o $env:TEMP\\9router-plinian.tgz; npm i -g $env:TEMP\\9router-plinian.tgz"`,
+    cmd: `powershell -NoProfile -Command "curl.exe -fsSL ${GH_LATEST_URL} -o $env:TEMP\\9router-kiyoshi.tgz; npm i -g $env:TEMP\\9router-kiyoshi.tgz"`,
     // PowerShell (Windows) — native, no shell escaping
-    pwsh: `curl.exe -fsSL ${GH_LATEST_URL} -o $env:TEMP\\9router-plinian.tgz; npm i -g $env:TEMP\\9router-plinian.tgz`,
+    pwsh: `curl.exe -fsSL ${GH_LATEST_URL} -o $env:TEMP\\9router-kiyoshi.tgz; npm i -g $env:TEMP\\9router-kiyoshi.tgz`,
   },
   // Pick the right command for the current OS. In the browser `navigator.platform`
   // / `userAgent` is available; on Node we fall back to `process.platform`.
@@ -66,23 +71,18 @@ export const UPDATER_CONFIG = {
 };
 
 // Theme configuration
- export const THEME_CONFIG = {
-   storageKey: "theme",
-   defaultTheme: "system", // "light" | "dark" | "system"
-   defaultPalette: "violet", // "violet" | "sea" | "rose" | "amber" | "teal"
- };
-
- // 4-swatch palettes (ported from jars-ui). Each palette drives the
- // --color-brand-* + bg/text/surface tokens via [data-palette] in globals.css.
- // "violet" is the 9router default (Aurora). Sub-tokens are derived from the
- // 4 roots so a root change stays consistent — no hand-set sub values.
-export const PALETTES = {
-  violet: { label: "Violet", swatch: "#8B5CF6", dark: true },
-  sea:    { label: "Sea",    swatch: "#0ea5e9", dark: true },
-  rose:   { label: "Rose",   swatch: "#e11d48", dark: true },
-  amber:  { label: "Amber",  swatch: "#F2A900", dark: true },
-  teal:   { label: "Teal",   swatch: "#00B7B5", dark: true },
+export const THEME_CONFIG = {
+  storageKey: "theme",
+  defaultTheme: "amoled", // "light" | "dark" | "amoled"
 };
+
+export const THEMES = [
+  { id: "light", label: "Paper", icon: "light_mode" },
+  { id: "dark", label: "Charcoal", icon: "dark_mode" },
+  { id: "amoled", label: "AMOLED", icon: "contrast" },
+];
+
+export const PALETTES = {};
 
 // Subscription
 export const SUBSCRIPTION_CONFIG = {

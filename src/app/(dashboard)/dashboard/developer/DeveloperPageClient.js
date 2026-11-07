@@ -428,7 +428,7 @@ export default function DeveloperPageClient() {
 
   const [abPresetId, setAbPresetId] = useState(() => {
     const saved = readStoredString(STORAGE_KEYS.abPreset);
-    return STYLE_PRESETS.some((preset) => preset.id === saved) ? saved : "plinian-ultra";
+    return STYLE_PRESETS.some((preset) => preset.id === saved) ? saved : "kiyoshi-ultra";
   });
   const [abUseTokenSaver, setAbUseTokenSaver] = useState(
     () => readStoredString(STORAGE_KEYS.abTokenSaver, "off") === "on"
@@ -2057,7 +2057,7 @@ export default function DeveloperPageClient() {
             onChange={(event) => setDraft(event.target.value)}
             rows={4}
             placeholder="Your prompt…"
-            className="w-full resize-y rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text-main outline-none focus:border-primary/50"
+            className="w-full resize-y rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text-main outline-none focus:border-border-strong/50"
           />
 
           {singleError && <div className="text-sm text-red-500">{singleError}</div>}
@@ -2141,7 +2141,7 @@ export default function DeveloperPageClient() {
               onChange={(event) => setDraft(event.target.value)}
               rows={3}
               placeholder="Same prompt goes to every racer…"
-              className="w-full resize-y rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text-main outline-none focus:border-primary/50"
+              className="w-full resize-y rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text-main outline-none focus:border-border-strong/50"
             />
 
             <div className="flex items-center gap-2">
@@ -2181,7 +2181,7 @@ export default function DeveloperPageClient() {
                     <select
                       value={abRepeats}
                       onChange={(event) => setAbRepeats(Number(event.target.value))}
-                      className="rounded-md border border-border bg-surface px-1.5 py-0.5 text-xs text-text-main outline-none focus:border-primary/50"
+                      className="rounded-md border border-border bg-surface px-1.5 py-0.5 text-xs text-text-main outline-none focus:border-border-strong/50"
                     >
                       <option value={1}>1</option>
                       <option value={3}>3</option>
@@ -2228,7 +2228,7 @@ export default function DeveloperPageClient() {
                 <button
                   onClick={() => setAbUseTokenSaver(!abUseTokenSaver)}
                   disabled={abBusy}
-                  title="Router-level Caveman / Ponytail / Global Plinian participate when ON"
+                  title="Router-level Caveman / Ponytail / Global Kiyoshi participate when ON"
                   className={`rounded-md px-2 py-1 text-xs font-semibold transition-colors ${
                     abUseTokenSaver ? "bg-green-600 text-white" : "bg-surface border border-border text-text-muted"
                   }`}
@@ -2237,7 +2237,7 @@ export default function DeveloperPageClient() {
                 </button>
                 <span className="text-xs text-text-muted">
                   {abUseTokenSaver
-                    ? "Caveman/Ponytail + global Plinian ride along in BOTH arms"
+                    ? "Caveman/Ponytail + global Kiyoshi ride along in BOTH arms"
                     : "router steering bypassed — arms differ only by the presets above"}
                 </span>
               </div>

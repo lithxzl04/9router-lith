@@ -82,8 +82,18 @@ function CollapsibleSection({ title, children, defaultOpen = false, icon = null 
   );
 }
 
+// Providers place cache reads in different slots. Reading only the top-level
+// key is what made every Antigravity row render an em dash in this table even
+// when 20k of 22k prompt tokens were cached (Gemini reports it nested).
 function getCachedTokens(tokens) {
-  return tokens?.cached_tokens || tokens?.cache_read_input_tokens || 0;
+  if (!tokens || typeof tokens !== "object") return 0;
+  return (
+    tokens.cached_tokens ||
+    tokens.cache_read_input_tokens ||
+    tokens.prompt_tokens_details?.cached_tokens ||
+    tokens.input_tokens_details?.cached_tokens ||
+    0
+  );
 }
 
 function getCacheCreationTokens(tokens) {
@@ -191,7 +201,7 @@ export default function RequestDetailsTab() {
               onChange={(e) => setFilters({ ...filters, provider: e.target.value })}
               className={cn(
                 "h-9 px-3 rounded-lg border border-black/10 dark:border-white/10 bg-surface",
-                "text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-primary/20",
+                "text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-border-strong",
                 "w-full min-w-0 cursor-pointer"
               )}
               style={{ colorScheme: 'auto' }}
@@ -214,7 +224,7 @@ export default function RequestDetailsTab() {
               onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
               className={cn(
                 "h-9 px-3 rounded-lg border border-black/10 dark:border-white/10 bg-surface",
-                "w-full min-w-0 text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-primary/20"
+                "w-full min-w-0 text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-border-strong"
               )}
             />
           </div>
@@ -228,7 +238,7 @@ export default function RequestDetailsTab() {
               onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
               className={cn(
                 "h-9 px-3 rounded-lg border border-black/10 dark:border-white/10 bg-surface",
-                "w-full min-w-0 text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-primary/20"
+                "w-full min-w-0 text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-border-strong"
               )}
             />
           </div>

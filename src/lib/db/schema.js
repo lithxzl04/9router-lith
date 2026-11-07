@@ -87,6 +87,18 @@ export const TABLES = {
       // syncSchemaFromTables() on boot; existing rows read as unrestricted (0).
       accessRestricted: "INTEGER DEFAULT 0",
       accessAllow: "TEXT",
+      // Token limit and reset period per key.
+      // tokenLimit: 0 = unlimited, > 0 = max tokens
+      // tokenResetPeriod: 'total' (lifetime) or 'daily' (resets at midnight UTC)
+      tokenLimit: "INTEGER DEFAULT 0",
+      tokenResetPeriod: "TEXT DEFAULT 'total'",
+      // Expiration timestamp (ISO string, e.g. 2026-11-10T00:00:00.000Z).
+      // NULL or empty = unlimited lifetime.
+      expiresAt: "TEXT",
+      // Per-key injection switch. 1 = this key inherits the global injection
+      // settings (jailbreak payload + custom prompt), 0 = nothing is injected
+      // for requests made with this key. Default 1 keeps existing keys working.
+      injection: "INTEGER DEFAULT 1",
     },
     indexes: ["CREATE INDEX IF NOT EXISTS idx_ak_key ON apiKeys(key)"],
   },

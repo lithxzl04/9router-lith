@@ -52,6 +52,7 @@ source/*
 docs/*
 !docs/ARCHITECTURE.md
 !docs/README-upstream-decolua.md
+!docs/MODIFICATIONS.md
 RM.vn.md
 RM.md
 cursor/*
@@ -147,6 +148,7 @@ start-dev-silent.cjs
 debug.log
 .scratch/
 /AGENTS.md
+agent.md
 
 # payload collections live in the sibling repo / special/9router-payloads (or ~/.9router/payloads via payloads:sync)
 /AI-Jailbreaks/

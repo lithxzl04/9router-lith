@@ -8,6 +8,9 @@ import { proxyAwareFetch } from "../utils/proxyFetch.js";
 import { cleanJSONSchemaForAntigravity, normalizeGeminiContents } from "../translator/formats/gemini.js";
 import { DEFAULT_THINKING_AG_SIGNATURE } from "../config/defaultThinkingSignature.js";
 import { getGeminiThoughtSignatureSync } from "../services/thoughtSignatureStore.js";
+import { scrubProxyAndFingerprintHeaders, removeHeaderCaseInsensitive } from "../services/antigravityHeaderScrub.js";
+import { analyze429, isDurable429 } from "../services/antigravity429Engine.js";
+import { getFamilyLockCandidates } from "../services/antigravityFamilyCooldown.js";
 
 // Sanitize function name: Gemini requires [a-zA-Z_][a-zA-Z0-9_.:\-]{0,63}
 function sanitizeFunctionName(name) {
@@ -153,24 +156,44 @@ export class AntigravityExecutor extends BaseExecutor {
   buildUrl(model, stream, urlIndex = 0) {
     const baseUrls = this.getBaseUrls();
     const baseUrl = baseUrls[urlIndex] || baseUrls[0];
-    // Image generation MUST use non-streaming generateContent
+    // Only image generation needs the non-streaming endpoint. Every text model goes
+    // through streamGenerateContent, even when the client asked for stream:false:
+    // the Cloud Code non-streaming `generateContent` path answers some models with a
+    // body the JSON parser cannot read (upstream 400s, and gzip bodies that never get
+    // decoded), which surfaced as `502 Invalid JSON response from antigravity` on
+    // every non-stream request while the streaming ones succeeded. chatCore already
+    // converts SSE back to a single JSON body for non-stream clients.
     const forceNonStream = isImageModel(model);
-    const action = (stream && !forceNonStream) ? "streamGenerateContent?alt=sse" : "generateContent";
+    const action = forceNonStream ? "generateContent" : "streamGenerateContent?alt=sse";
     return `${baseUrl}/v1internal:${action}`;
   }
 
   // sessionId comes from transformRequest output; base.execute runs transformRequest before
   // buildHeaders, so we read it from instance state cached there (fallback: explicit arg).
+  //
+  // Anti-ban: outbound headers are scrubbed so proxy tracing, Chromium Sec-Ch-*,
+  // and Stainless SDK signatures are never exposed to Google.
+  // Authorization is serialized last to mirror native Antigravity client order.
   buildHeaders(credentials, stream = true, sessionId = null) {
-    return {
+    const raw = {
       "Content-Type": "application/json",
       "Authorization": `Bearer ${credentials.accessToken}`,
       "User-Agent": this.config.headers?.["User-Agent"] || ANTIGRAVITY_HEADERS["User-Agent"],
     };
+    return scrubProxyAndFingerprintHeaders(raw);
   }
 
   transformRequest(model, body, stream, credentials) {
-    const projectId = credentials?.projectId || this.generateProjectId();
+    // Use the real Cloud Code project id and nothing else.
+    //
+    // `aicode-consumers` is what loadCodeAssist returns for Antigravity accounts,
+    // so it IS the real project — the earlier "shared placeholder" reading was
+    // wrong, and treating it as missing is what made this executor invent ids.
+    // A fabricated project is a stronger abuse signal to Google than no project,
+    // and it also broke prompt-cache affinity (Google keys the cache on
+    // (project, model, prefix)), which is why TTFT ran 20-70s. chat.js refuses
+    // the request before we get here when no real id exists.
+    const projectId = credentials?.projectId;
 
     // OpenAI clients may include stream_options even for non-streaming calls.
     // Google generateContent rejects that combination before processing the request.
@@ -382,12 +405,6 @@ export class AntigravityExecutor extends BaseExecutor {
     }
   }
 
-  generateProjectId() {
-    const adj = ["useful", "bright", "swift", "calm", "bold"][Math.floor(Math.random() * 5)];
-    const noun = ["fuze", "wave", "spark", "flow", "core"][Math.floor(Math.random() * 5)];
-    return `${adj}-${noun}-${crypto.randomUUID().slice(0, 5)}`;
-  }
-
   generateSessionId() {
     return crypto.randomUUID() + Date.now().toString();
   }
@@ -470,6 +487,16 @@ export class AntigravityExecutor extends BaseExecutor {
     }
 
     const errorMessage = this.extractErrorMessage(errorJson, bodyText);
+
+    // Anti-ban 429 decision engine: classify quota vs RPM vs burst.
+    // If upstream signals durable quota exhaustion, veto executor-level retry
+    // so we switch account instead of hammering Google with backoff on dead quota.
+    if (response.status === HTTP_STATUS.RATE_LIMITED) {
+      const decision = analyze429(errorMessage, retryMs);
+      if (isDurable429(decision)) {
+        return false; // veto retry — durable quota exhausted, let accountFallback cool down 24h
+      }
+    }
 
     if (!retryMs) {
       retryMs = this.parseRetryFromErrorMessage(errorMessage);

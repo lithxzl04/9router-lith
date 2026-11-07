@@ -416,7 +416,7 @@ export default function CustomPayloadsClient() {
     <div className="space-y-6">
       {/* import / upload */}
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className="px-3 py-3 rounded border border-border bg-bg-subtle">
+        <div className="px-3 py-3 rounded-control bg-surface-2">
           <label className="text-text-muted text-xs font-semibold uppercase tracking-wider block mb-2">Import from GitHub</label>
           <div className="flex gap-2">
             <input
@@ -425,7 +425,7 @@ export default function CustomPayloadsClient() {
               onChange={(e) => { setImportUrl(e.target.value); if (scan) { setScan(null); setScanPicked({}); setCollapsed(new Set()); } }}
               onKeyDown={(e) => { if (e.key === "Enter") runScan(); }}
               placeholder="github.com/you/repo or raw.githubusercontent.com/…/x.md"
-              className="flex-1 min-w-0 px-3 py-2 bg-bg-base border border-border rounded text-sm text-text-main focus:outline-none focus:border-primary"
+              className="flex-1 min-w-0 px-3 py-2 bg-bg-base border border-border rounded text-sm text-text-main focus:outline-none focus:border-border-strong"
             />
             <button
               onClick={runScan}
@@ -464,7 +464,7 @@ export default function CustomPayloadsClient() {
             </div>
           ) : null}
         </div>
-        <div className="px-3 py-3 rounded border border-border bg-bg-subtle">
+        <div className="px-3 py-3 rounded-control bg-surface-2">
           <label className="text-text-muted text-xs font-semibold uppercase tracking-wider block mb-2">Upload local file</label>
           <div>
             <input
@@ -476,7 +476,7 @@ export default function CustomPayloadsClient() {
             />
             <button
               onClick={() => fileRef.current?.click()}
-              className="w-full px-4 py-2 rounded border border-border bg-bg-base text-sm text-text-main hover:bg-bg-hover transition-colors"
+              className="w-full px-4 py-2 rounded-control bg-surface-2 text-sm text-text-main hover:bg-bg-hover transition-colors"
             >
               Browse .md / .txt file…
             </button>
@@ -492,8 +492,8 @@ export default function CustomPayloadsClient() {
         </div>
       )}
 
-      <div className="overflow-hidden rounded border border-border bg-bg-subtle">
-        <table className="w-full text-sm">
+      <div className="overflow-x-auto rounded-control bg-surface-2">
+        <table className="w-full text-sm min-w-[520px]">
           <thead>
             <tr className="text-text-muted uppercase text-[11px] bg-bg-base border-b border-border">
               <th className="px-3 py-2 w-8" title="Select for batch delete">
@@ -545,7 +545,7 @@ export default function CustomPayloadsClient() {
                           if (e.key === "Enter") submitRename();
                           if (e.key === "Escape") setEditId(null);
                         }}
-                        className="w-64 px-2 py-1 rounded border border-border bg-bg-base text-text-main focus:outline-none focus:border-primary"
+                        className="w-64 px-2 py-1 rounded-control bg-surface-2 text-text-main focus:outline-none focus:border-border-strong"
                       />
                       {/* Capitalized labels on purpose: the locale dictionary keys
                           are the exact rendered text, and lowercase words like
@@ -561,7 +561,7 @@ export default function CustomPayloadsClient() {
                   <select
                     value={CATS.some((c) => c.key === r.cat) ? r.cat : "general"}
                     onChange={(e) => setCat(r.id, e.target.value)}
-                    className="px-2 py-1 rounded border border-border bg-bg-base text-[11px] text-text-main focus:outline-none focus:border-primary"
+                    className="px-2 py-1 rounded-control bg-surface-2 text-[11px] text-text-main focus:outline-none focus:border-border-strong"
                     title="Kategori dropdown Global Injection (default general)"
                   >
                     {CATS.map((c) => (

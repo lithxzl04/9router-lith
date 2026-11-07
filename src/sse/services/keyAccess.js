@@ -22,7 +22,7 @@
 // does not grant calling a member directly by name — that needs its own entry.
 // The check runs before any credential lookup, so a denied request never
 // touches a provider account.
-import { getApiKeyByKey } from "@/lib/db/repos/apiKeysRepo.js";
+import { getApiKeyByKey, getKeyUsage } from "@/lib/db/repos/apiKeysRepo.js";
 import { getCombos } from "@/lib/db/repos/combosRepo.js";
 import { getModelInfo, getComboModels } from "./model.js";
 import { resolveProviderId } from "@/shared/constants/providers.js";
@@ -196,4 +196,62 @@ export async function filterModelsListForKey(ctx, list) {
     if (sets.models.has(canonicalModel(info.provider, info.model))) out.push(entry);
   }
   return out;
+}
+
+/**
+ * Token quota gate. Runs before any credential lookup, alongside the model
+ * whitelist check, so an exhausted key never touches a provider account.
+ *
+ * Limits are read live from usageHistory, so the number shown in the dashboard
+ * and the number enforced here can never drift apart.
+ *
+ * @returns {Promise<Response|null>} a 429 Response when the key is over quota.
+ */
+export async function enforceKeyQuota(request) {
+  const apiKey = extractClientApiKey(request);
+  if (!apiKey) return null;
+
+  const record = await getApiKeyByKey(apiKey);
+  if (!record) return null;
+  if (!record.isActive) {
+    log.warn("AUTH", `key-quota: key "${record.name || record.id}" is disabled`);
+    return errorResponse(HTTP_STATUS.UNAUTHORIZED, "API key is disabled");
+  }
+  if (record.expired) {
+    log.warn("AUTH", `key-quota: key "${record.name || record.id}" is expired (expiredAt=${record.expiresAt})`);
+    return errorResponse(HTTP_STATUS.UNAUTHORIZED, "API key has expired");
+  }
+
+  const limit = Number(record.tokenLimit) || 0;
+  if (limit <= 0) return null; // unlimited
+
+  const usage = await getKeyUsage(apiKey);
+  const used = record.tokenResetPeriod === "daily" ? usage.dailyTokens : usage.totalTokens;
+  if (used < limit) return null;
+
+  const period = record.tokenResetPeriod === "daily" ? "daily" : "total";
+  log.warn(
+    "AUTH",
+    `key-quota: key "${record.name || record.id}" exceeded ${period} quota (${used}/${limit} tokens)`
+  );
+  return errorResponse(HTTP_STATUS.RATE_LIMITED, "Quota exceeded for this API key");
+}
+
+
+/**
+ * Per-key injection switch.
+ *
+ * Every key inherits the global injection settings by default. A key with
+ * `injection: false` must ship the request exactly as the client wrote it, so
+ * the chat handler needs one boolean before it builds the chatCore options.
+ *
+ * Returns `true` when injection is allowed (the default, including "no key"
+ * local mode), `false` only for a known key that has the switch off.
+ */
+export async function isInjectionAllowedForKey(request) {
+  const apiKey = extractClientApiKey(request);
+  if (!apiKey) return true;
+  const record = await getApiKeyByKey(apiKey);
+  if (!record) return true;
+  return record.injection !== false;
 }

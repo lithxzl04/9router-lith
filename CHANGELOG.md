@@ -1,3 +1,43 @@
+# v0.6.7-kiyoshi (2026-11-08)
+
+> **Kiyoshi Production Edition** — based on [9Router Plinian](https://github.com/Azhar457/9router) (v0.6.7) & [9Router](https://github.com/decolua/9router). Hardened for heavy agent workloads, 7-layer anti-ban protection, real-time observability telemetry, and solid AMOLED design system.
+
+### Features & Observability
+- **Live Provider Pulse (`/dashboard/pulse`)**: dedicated real-time telemetry page with heartbeat monitoring across 50/100/200/500 request sample windows.
+  - **Overall Health Score**: derived from global success rate ($\ge 90\%$ Healthy, $70–<90\%$ Degraded, $<70\%$ Down). Latency is reported but never unfairly downgrades a provider during legitimate large-context loops (100k–380k prompt tokens).
+  - **Multi-Dimensional Breakdown**: Per Provider, Per Model, and Per Account / Key (uses `LEFT JOIN providerConnections` to resolve human-readable emails and key names).
+  - **Latency Percentiles**: TTFT p50 (median) and p95 (tail latency), total roundtrip duration, and cache-hit ratio %.
+  - **HTTP Status Code Distribution**: visual chip count for `200`, `400`, `401`, `5xx`, and unassigned errors.
+  - **Recent Upstream Failures Table**: decodes stored HTTP status codes and error payload previews (invalid thinking levels, upstream timeouts, quota exhaustions) with local timestamps.
+  - **Visual Latency Area Chart**: p50 vs p95 TTFT comparison using Recharts with Kiyoshi Forest Green & Warm Brass palette.
+  - **Live Auto-Refresh**: compliant with live-view contract (mount fetch, `SETTINGS_CHANGED_EVENT`, window focus, tab visibility resume, and 6s polling interval).
+  - **Browser-Local Time**: all timestamps automatically formatted in user's local timezone (e.g. WIB).
+- **Server Overview Dashboard (`/dashboard/overview`)**: host vitals monitor for CPU, RAM, disk, load averages (1/5/15m), thermals, active ports, Tailscale/Cloudflare tunnels, and system uptime.
+- **Access Keys Granular Control (`/dashboard/api-keys`)**:
+  - Per-key injection master switch (toggle steering/jailbreaks on or off per key, default ON).
+  - Lifetime & daily token quotas with automated 429 rate-limiting.
+  - Key expiration options (1d, 2d, 7d, 30d, unlimited).
+- **Themes & Design System**:
+  - New true AMOLED black (`#000000`), Charcoal, and Paper palettes.
+  - Solid Kiyoshi color tokens: Forest Green (`brand`), Warm Brass (`brass`), and Terracotta (`clay`).
+  - Solid chips and cards across all dashboard pages (no generic translucent AI borders or `/10` opacity fills).
+
+### Bug Fixes & Reliability
+- **Stream Passthrough (`open-sse/utils/stream.js`)**: fixed `finalizeStream()` not triggering on `data: [DONE]` sentinel. Strict OpenAI-compatible clients (OpenCode, `@ai-sdk`) terminate the TCP socket immediately upon reading `[DONE]`, causing ReadableStream to fire `cancel()` rather than `flush()`. Now finalized immediately when the sentinel arrives, ensuring `onStreamComplete` executes, console outputs `📊 DONE`, and SQLite `requestDetails` records full usage.
+- **Antigravity Non-Streaming Support (`open-sse/handlers/chatCore/sseToJsonHandler.js`)**: `parseSSEToOpenAIResponse()` now correctly decodes native Gemini `{response:{candidates:[{content:{parts:[...]}}]}}` SSE frames, mapping `parts[].text`, `parts[].thought`, `functionCall` to `tool_calls`, and `usageMetadata` to OpenAI usage. Eliminates empty `""` content and 502 errors on non-streaming requests.
+- **Antigravity Anti-Ban Armor (7 Layers)** *(ported & adapted from **OnmiRoute**)*:
+  - **L1 Header Scrubbing**: strips 24 leaking proxy, Chromium, and SDK headers (`x-forwarded-for`, `sec-ch-ua`, etc.).
+  - **L2 429 Guard**: local cache prevents hammer-looping Google with refused prompts; returns zero-upstream cached responses for 2–30 minutes.
+  - **L3 429 Engine & Cooldown**: classifies transient bursts vs 24h quota exhaustion; triggers 24h cooldown to prevent dead-account retries.
+  - **L4 Family Cooldown**: isolates Gemini, Claude, and Argon quotas on the same Google account.
+  - **L5 Account Pacing**: 1200ms ±30% jitter pacing per account to eliminate parallel burst patterns.
+  - **L6 Project ID Preservation**: retains genuine `aicode-consumers` project ID; eliminated random project generation that broke Google prompt caching.
+  - **L7 Quota Polling**: polling interval throttled from 30s to 5m per account.
+- **Thinking Token Floor (`open-sse/translator/concerns/thinkingUnified.js`)**: `ensureGeminiOutputFloor` now honors client `max_tokens` (`honorClientCap: true`) to avoid excessive thinking token burn on small prompts; omitted `includeThoughts` unless explicitly requested.
+- **Antigravity RTK Compression**: added `compressGeminiFormat` to compress `functionResponse` results in Gemini request bodies.
+- **CodeBuddy System Prompt Fallback**: added fallback prompt when requests omit system messages to prevent `11128 first message is not system prompt` errors.
+- **Cache Accounting (`src/lib/db/repos/usageRepo.js`, `RequestDetailsTab.js`)**: `extractCachedTokens()` now parses all 4 cache slots (`prompt_tokens_details.cached_tokens`, `usageMetadata.cachedContentTokenCount`, etc.), fixing 0% cache hit reporting for Antigravity.
+
 # v0.6.7 (2026-11-07)
 
 ## Features
@@ -1175,7 +1215,7 @@
 >
 > ```bash
 > curl -fsSL https://github.com/Azhar457/9router/releases/latest/download/9router-plinian-latest.tgz \
->   -o /tmp/9router-plinian.tgz && npm i -g /tmp/9router-plinian.tgz
+>   -o /tmp/9router-kiyoshi.tgz && npm i -g /tmp/9router-kiyoshi.tgz
 > ```
 
 ## What is new (Strix + injection, all beta)
@@ -1246,7 +1286,7 @@
 
 ## GitHub-only updates
 
-The npm package `9router-plinian` is deprecated (dual-use scanner + owner 2FA stage queue can't be automated). **GitHub Releases is now the single source of truth** for both install and update.
+The npm package `9router-kiyoshi` is deprecated (dual-use scanner + owner 2FA stage queue can't be automated). **GitHub Releases is now the single source of truth** for both install and update.
 
 ### What changed
 - `cli/cli.js` — `checkForUpdate()` now queries the GitHub releases API instead of `registry.npmjs.org`; `INSTALL_CMD_LATEST` is the GitHub-tarball flow. Env-overridable: `NINEROUTER_GH_REPO` / `NINEROUTER_GH_TARBALL`.
@@ -1257,9 +1297,9 @@ The npm package `9router-plinian` is deprecated (dual-use scanner + owner 2FA st
 
 ### Install / update (the only path now)
 ```bash
-curl -fsSL https://github.com/Azhar457/9router/releases/latest/download/9router-plinian-latest.tgz -o /tmp/9router-plinian.tgz
-npm install -g /tmp/9router-plinian.tgz
-9router-plinian
+curl -fsSL https://github.com/Azhar457/9router/releases/latest/download/9router-plinian-latest.tgz -o /tmp/9router-kiyoshi.tgz
+npm install -g /tmp/9router-kiyoshi.tgz
+9router-kiyoshi
 ```
 
 The in-app updater ("Update to vX") and the CLI "Update" menu item both run this flow automatically: download the `9router-plinian-latest.tgz` release asset → `npm i -g` it → relaunch. No npm registry involvement.
@@ -1272,10 +1312,10 @@ The in-app updater ("Update to vX") and the CLI "Update" menu item both run this
 - **Sidebar palette dots**: 24px hit area / 16px disc / 4px gap (multiples of 4), bordered disc, cursor + hover scale + focus ring, active ring from theme tokens; clicking the active dot no longer resets to violet.
 - **Semantic sidebar surfaces**: `.bg-vibrancy` now uses the `--color-sidebar` token (mode + palette aware) instead of a hardcoded dark rgba — dark mode no longer over-contrasted.
 - **Pre-paint palette**: root layout inline script applies `data-palette` (not just the `dark` class) before first paint — reload keeps the chosen accent, no violet flash.
-- **Donate card removed**: "Support 9Router-Plinian" header button + modal disabled by default (`DonateModal` component kept).
+- **Donate card removed**: "Support 9Router-Kiyoshi" header button + modal disabled by default (`DonateModal` component kept).
 
 ## Red team docs
-- **README split**: npm page (`cli/README.md`) rewritten for the fork — fork-diff section, Red Team Toolkit docs, `9router-plinian` badges/install; root README gains Fork Differences + Red Team Toolkit sections.
+- **README split**: npm page (`cli/README.md`) rewritten for the fork — fork-diff section, Red Team Toolkit docs, `9router-kiyoshi` badges/install; root README gains Fork Differences + Red Team Toolkit sections.
 
 ## Media — image generation for custom nodes (Plinian fork)
 - **Generic image adapter**: any `openai-compatible-*` provider node can serve image models. Base URL comes from the node credentials; missing base URL is refused (no `api.openai.com` fallback — prevents key leakage).
@@ -1294,7 +1334,7 @@ The in-app updater ("Update to vX") and the CLI "Update" menu item both run this
 # v0.5.93 (2026-09-30)
 
 ## Global Injection (developer card)
-- **Unified card**: "Global Plinian" + "GODMODE" merged into a single **Global Injection** card — one master toggle drives both the register prompt (Plinian-style) and the G0DM0D3 jailbreak payload. Register + payload ride together into the same system message; the payload is appended last, closest to the user query.
+- **Unified card**: "Global Kiyoshi" + "GODMODE" merged into a single **Global Injection** card — one master toggle drives both the register prompt (Plinian-style) and the G0DM0D3 jailbreak payload. Register + payload ride together into the same system message; the payload is appended last, closest to the user query.
 - **Settings**: new keys `injectionEnabled`, `injectionRegisterLevel`, `injectionIdentity`, `injectionGodmodeLevel`, `injectionGodmodeCustom`. Legacy `plinian*` / `godmode*` keys still honored as fallback so persisted settings keep working.
 - **New payload variant** `adaptive` — register-stripping prompt that relies on the model's own extended-thinking budget rather than a structural jailbreak trick; the surviving shape for Claude Fable 5.1 / Opus 5, GPT-6, Grok 4.5+ (fine-tuned after 2025).
 - **Model-aware routing** (`pickGodmodeVariant`): most-specific-first map; `f:*` file routes fall back to classic when the source file is missing.
@@ -1688,7 +1728,7 @@ The in-app updater ("Update to vX") and the CLI "Update" menu item both run this
 ## Features
 - **Providers**: add TokenRouter (300+ models via OpenAI-compatible gateway) with
   exact per-model pricing for 110 models and `reasoning_effort` thinking config
-- **Providers**: add Self-hosted STT / TTS / Embedding — point 9Router-Plinian at your own
+- **Providers**: add Self-hosted STT / TTS / Embedding — point 9Router-Kiyoshi at your own
   OpenAI-compatible speech and embedding servers (whisper.cpp, faster-whisper,
   Kokoro-FastAPI, llama-server, vLLM, Infinity). Unlike the named cloud providers
   these read `baseUrl` per connection, so one provider can front several machines
@@ -1822,7 +1862,7 @@ The in-app updater ("Update to vX") and the CLI "Update" menu item both run this
 - **CLI tools**: Grok Build setup — choose separate main/general-purpose/explore/plan models and preserve each model's context window
 - **GitHub Copilot**: route Claude models through Copilot's native `/v1/messages`
 - **Kiro**: add GPT-5.6 model family (#2596)
-- **RTK**: `X-9Router-Plinian-Token-Saver` header to bypass token savers per request
+- **RTK**: `X-9Router-Kiyoshi-Token-Saver` header to bypass token savers per request
 - **Providers**: quota visibility settings
 - **Translator**: drop temperature for all Claude models
 - **i18n**: Thai (th) + Persian (fa) translations / README
@@ -2072,7 +2112,7 @@ The in-app updater ("Update to vX") and the CLI "Update" menu item both run this
 - Dashboard: show provider node name instead of connection name in topology (#1770) + show explicit `kind="llm"` combos on combos page (#1684)
 
 ## Docs
-- README: add Indonesian 9Router-Plinian tutorial video (#1709)
+- README: add Indonesian 9Router-Kiyoshi tutorial video (#1709)
 
 # v0.4.71 (2026-06-06)
 
