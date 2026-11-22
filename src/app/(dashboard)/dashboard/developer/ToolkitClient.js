@@ -25,10 +25,10 @@ function Reveal({ text }) {
   return (
     <div>
       <div className="mb-1 text-[11px] text-text-muted">
-        Panjang: <span className="text-text-main">{chars.length}</span> code point ·{" "}
-        <span className="text-text-main">{visible}</span> terlihat ·{" "}
+        Length: <span className="text-text-main">{chars.length}</span> code points ·{" "}
+        <span className="text-text-main">{visible}</span> visible ·{" "}
         <span className={invisible ? "text-red-400" : "text-text-main"}>{invisible}</span> invisible
-        {invisible > 0 ? " (ada karakter tak-terlihat)" : ""}
+        {invisible > 0 ? " (contains invisible characters)" : ""}
       </div>
       <div className="overflow-x-auto whitespace-pre-wrap break-all rounded-lg bg-surface-2 p-3 font-mono text-xs leading-relaxed text-text-main">
         {chars.length === 0 ? (
@@ -115,16 +115,16 @@ export default function ToolkitClient({ setDraft }) {
     <div className="flex flex-col gap-3 rounded-xl border border-border bg-surface/40 p-4">
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium text-text-main">
-          Red-Team Toolkit — perangkai transformasi payload
+          Red-Team Toolkit — payload transform pipeline
         </span>
-        <span className="text-xs text-text-muted">{steps.length} step aktif</span>
+        <span className="text-xs text-text-muted">{steps.length} active steps</span>
       </div>
 
       <textarea
         value={input}
         onChange={(e) => setInput(e.target.value)}
         rows={4}
-        placeholder="Teks mentah yang mau diubah (prompt / payload)…"
+        placeholder="Raw text to transform (prompt / payload)…"
         className="w-full resize-y rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text-main outline-none focus:border-border-strong/50"
       />
       <Reveal text={input} />
@@ -144,7 +144,7 @@ export default function ToolkitClient({ setDraft }) {
 
       <div>
         <div className="mb-1.5 text-xs uppercase tracking-wide text-text-muted">
-          Transformasi (klik untuk aktifkan)
+          Transforms (click to toggle)
         </div>
         <div className="flex flex-wrap gap-1.5">
           {TRANSFORMS.map((t) => (
@@ -166,7 +166,7 @@ export default function ToolkitClient({ setDraft }) {
       {steps.length > 0 && (
         <div className="flex flex-col gap-1.5 rounded-lg border border-border bg-surface-2 p-3">
           <div className="text-xs uppercase tracking-wide text-text-muted">
-            Urutan pipeline (atas → bawah)
+            Pipeline order (top → bottom)
           </div>
           {steps.map((s, idx) => {
             const def = TRANSFORMS.find((x) => x.id === s.id);
@@ -184,13 +184,13 @@ export default function ToolkitClient({ setDraft }) {
                       className="h-7 w-32 rounded border border-border bg-surface px-1.5 text-xs text-text-main outline-none focus:border-border-strong/50"
                     />
                   )}
-                  <button onClick={() => move(idx, -1)} className="text-text-muted hover:text-text-main" title="naik">
+                  <button onClick={() => move(idx, -1)} className="text-text-muted hover:text-text-main" title="move up">
                     ↑
                   </button>
-                  <button onClick={() => move(idx, 1)} className="text-text-muted hover:text-text-main" title="turun">
+                  <button onClick={() => move(idx, 1)} className="text-text-muted hover:text-text-main" title="move down">
                     ↓
                   </button>
-                  <button onClick={() => toggle(s.id)} className="text-text-muted hover:text-red-500" title="hapus">
+                  <button onClick={() => toggle(s.id)} className="text-text-muted hover:text-red-500" title="remove">
                     ✕
                   </button>
                 </div>
@@ -208,7 +208,7 @@ export default function ToolkitClient({ setDraft }) {
       {stepResults.length > 0 && (
         <div className="flex flex-col gap-2">
           <div className="text-xs uppercase tracking-wide text-text-muted">
-            Hasil per langkah
+            Step-by-step results
           </div>
           {stepResults.map((r, idx) => (
             <div key={idx} className="rounded-lg border border-border bg-surface/40 p-3">
@@ -224,14 +224,14 @@ export default function ToolkitClient({ setDraft }) {
 
       <div>
         <div className="mb-1.5 flex items-center justify-between">
-          <span className="text-xs uppercase tracking-wide text-text-muted">Hasil akhir</span>
+          <span className="text-xs uppercase tracking-wide text-text-muted">Final output</span>
           <div className="flex gap-2">
             <button onClick={copy} className="text-xs text-text-muted hover:text-primary">
-              {copied ? "Tersalin ✓" : "Salin"}
+              {copied ? "Copied ✓" : "Copy"}
             </button>
             {typeof setDraft === "function" && (
               <button onClick={() => setDraft(output)} className="text-xs text-text-muted hover:text-primary">
-                Ke draft
+                To draft
               </button>
             )}
           </div>

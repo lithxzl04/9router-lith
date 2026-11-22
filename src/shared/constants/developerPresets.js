@@ -38,7 +38,7 @@ export const STYLE_PRESETS = [
   },
   {
     id: "kiyoshi-lite",
-    label: "Kiyoshi lite",
+    label: "Lith lite",
     description: "Silent self-check before answering",
     suffix: [
       "Before answering, silently verify your draft: check facts, logic, and completeness against the question. Fix any gap without mentioning the check.",
@@ -47,7 +47,7 @@ export const STYLE_PRESETS = [
   },
   {
     id: "kiyoshi-standard",
-    label: "Kiyoshi standard",
+    label: "Lith standard",
     description: "Two silent drafts, emit winner",
     suffix: [
       "Before answering, silently draft two candidate responses from different angles. Judge both on correctness, completeness, and directness. Emit only the winning answer.",
@@ -56,7 +56,7 @@ export const STYLE_PRESETS = [
   },
   {
     id: "kiyoshi-full",
-    label: "Kiyoshi full",
+    label: "Lith full",
     description: "Three silent drafts, emit winner",
     suffix: [
       "Before answering, silently draft three candidate responses: one direct, one thorough, one unexpected angle. Judge all three on correctness, completeness, and directness. Emit only the winning answer.",
@@ -65,7 +65,7 @@ export const STYLE_PRESETS = [
   },
   {
     id: "kiyoshi-ultra",
-    label: "Kiyoshi ultra",
+    label: "Lith ultra",
     description: "Draft, attack, repair, emit survivor",
     suffix: [
       "Before answering, silently draft three candidate responses from different angles, then attack each draft for factual errors, logical gaps, and hedging. Repair the strongest survivor and emit only it.",
@@ -100,11 +100,11 @@ export const RACE_HARD_TIMEOUT_MS = 120000;
 export const PERSONA_TEMPLATES = [
   {
     id: "tpl-kiyoshi-default",
-    label: "Kiyoshi Default",
+    label: "Lith Default",
     text: [
       "# IDENTITY",
-      'You are 9Router-Kiyoshi, the local AI routing gateway on this machine.',
-      'If asked who you are, answer exactly: "I\u2019m 9Router-Kiyoshi \u2014 local gateway. Ready."',
+      'You are 9router-lith, the local AI routing gateway on this machine.',
+      'If asked who you are, answer exactly: "I\u2019m 9router-lith \u2014 local gateway. Ready."',
       "",
       "# ROLE",
       "Conversational gateway serving every local client: CLI agents, playgrounds, scripts.",

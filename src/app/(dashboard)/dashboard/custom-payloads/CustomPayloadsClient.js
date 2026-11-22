@@ -262,7 +262,7 @@ export default function CustomPayloadsClient() {
   };
   const selectedCount = rows ? rows.filter((r) => selected[r.id]).length : 0;
 
-  // view — in-page modal (window.open dengan body text rusak di beberapa engine)
+  // view — in-page modal (window.open with body text breaks in some browser engines)
   const preview = async (id) => {
     setViewRow({ id, text: "", chars: 0 });
     try {
@@ -562,7 +562,7 @@ export default function CustomPayloadsClient() {
                     value={CATS.some((c) => c.key === r.cat) ? r.cat : "general"}
                     onChange={(e) => setCat(r.id, e.target.value)}
                     className="px-2 py-1 rounded-control bg-surface-2 text-[11px] text-text-main focus:outline-none focus:border-border-strong"
-                    title="Kategori dropdown Global Injection (default general)"
+                    title="Global Injection dropdown category (default general)"
                   >
                     {CATS.map((c) => (
                       <option key={c.key} value={c.key}>{c.label}</option>
@@ -596,7 +596,7 @@ export default function CustomPayloadsClient() {
         )}
       </div>
 
-      {/* view modal — isi payload, read-only */}
+      {/* view modal — payload content, read-only */}
       <Modal
         isOpen={!!viewRow}
         onClose={() => setViewRow(null)}
@@ -620,7 +620,7 @@ export default function CustomPayloadsClient() {
 
       <p className="text-text-muted text-xs">
         Payloads appear under the Global Injection menu with id <code className="font-mono">f:custom:&lt;name&gt;</code>.
-        Optional per-file category: first line <code className="font-mono">cat: pentest|coding|creative|general|nsfw</code> — atau pakai dropdown Category di atas (default general).
+        Optional per-file category: first line <code className="font-mono">cat: pentest|coding|creative|general|nsfw</code> — or use the Category dropdown above (default general).
       </p>
     </div>
   );

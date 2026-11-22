@@ -705,7 +705,7 @@ export async function runTakeover(sess, upstreamUrl, origin) {
 }
 
 function htmlPage(title, lines, autoClose = false) {
-  const body = `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>${title}</title>
+  const body = `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${title}</title>
 <style>body{font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#111;color:#eee}
 .card{padding:2rem 2.5rem;border-radius:12px;background:#1b1b1f;text-align:center;max-width:420px}
 h1{font-size:1.1rem;margin:.2rem 0 .6rem}p{opacity:.8;font-size:.9rem;line-height:1.6}</style></head>
@@ -716,11 +716,11 @@ h1{font-size:1.1rem;margin:.2rem 0 .6rem}p{opacity:.8;font-size:.9rem;line-heigh
 }
 
 function donePage() {
-  return htmlPage("登录成功 ✅", ["账号会话已捕获，可以关闭此窗口。", "回到 9router 弹窗继续。"], true);
+  return htmlPage("Login Successful ✅", ["Account session captured. You can close this window.", "Return to the 9router-lith modal to continue."], true);
 }
 
 function pendingPage() {
-  return htmlPage("登录未完成", ["未检测到有效会话，请重试。"]);
+  return htmlPage("Login Incomplete", ["No valid session detected. Please try again."]);
 }
 
 export const __test__ = { STRIP_UPSTREAM_HEADERS, buildBrowserResponse };

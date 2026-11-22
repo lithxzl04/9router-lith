@@ -31,14 +31,17 @@ const readConfig = async () => {
   }
 };
 
+const is9RouterEntry = (entry) =>
+  entry?.name === "9router-lith" || entry?.name === "9Router-Kiyoshi";
+
 const has9RouterConfig = (config) => {
   if (!Array.isArray(config)) return false;
-  return config.some((entry) => entry.name === "9Router-Kiyoshi");
+  return config.some(is9RouterEntry);
 };
 
 const get9RouterEntry = (config) => {
   if (!Array.isArray(config)) return null;
-  return config.find((entry) => entry.name === "9Router-Kiyoshi") || null;
+  return config.find(is9RouterEntry) || null;
 };
 
 // GET - Read current copilot config
@@ -85,7 +88,7 @@ export async function POST(request) {
     const keyToUse = await resolveCliApiKey(apiKey);
 
     const newEntry = {
-      name: "9Router-Kiyoshi",
+      name: "9router-lith",
       vendor: "azure",
       apiKey: keyToUse,
       models: models.map((id) => ({
@@ -99,8 +102,8 @@ export async function POST(request) {
       })),
     };
 
-    // Replace existing 9Router-Kiyoshi entry or append
-    const idx = config.findIndex((e) => e.name === "9Router-Kiyoshi");
+    // Replace existing 9router-lith / 9Router-Kiyoshi entry or append
+    const idx = config.findIndex(is9RouterEntry);
     if (idx >= 0) {
       config[idx] = newEntry;
     } else {
@@ -137,12 +140,12 @@ export async function DELETE() {
       throw error;
     }
 
-    config = config.filter((e) => e.name !== "9Router-Kiyoshi");
+    config = config.filter((e) => !is9RouterEntry(e));
     await fs.writeFile(configPath, JSON.stringify(config, null, 2));
 
     return NextResponse.json({
       success: true,
-      message: "9Router-Kiyoshi removed from Copilot config",
+      message: "9router-lith removed from Copilot config",
     });
   } catch (error) {
     console.log("Error resetting copilot settings:", error);

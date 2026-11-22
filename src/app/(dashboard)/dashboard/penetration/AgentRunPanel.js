@@ -1,21 +1,20 @@
 "use client";
 
-// Tab Agent untuk halaman Penetration.
+// Agent tab for the Penetration page.
 //
-// Bedanya dari kartu skill-router yang sudah ada: kartu itu cuma mengindeks
-// skill dan menginstruksi agent untuk mengambilnya sendiri — tidak ada yang
-// dieksekusi. Tab ini menjalankan agent sungguhan: model lewat router milik
-// 9router sendiri memanggil tool, tool menjalankan nmap/sqlmap/nuclei di dalam
-// sandbox container, dan hasilnya kembali ke model.
+// Unlike the existing skill-router card (which only indexes skills and
+// instructs an external agent to fetch them), this tab runs an actual agent:
+// the model calls tools through 9router-lith's own router, tools execute
+// nmap/sqlmap/nuclei inside a sandbox container, and the output returns to
+// the model.
 //
-// Agent-nya berjenjang. Root memecah pekerjaan lalu menurunkan agent kerja
-// (recon, exploit, privesc) lewat spawn_agent. Semua agent memakai satu
-// container dan satu buku bukti yang sama, jadi hasil recon bisa langsung
-// dirujuk agent exploit tanpa perlu disalin.
+// The agent is hierarchical. Root breaks down the task and spawns worker
+// agents (recon, exploit, privesc) via spawn_agent. All agents share a single
+// container and a single evidence ledger so recon results can be referenced
+// directly by exploit agents without manual copying.
 //
-// Yang tidak boleh hilang: panel ini menampilkan bukti apa pun yang dipakai
-// tiap temuan, supaya klaim bisa diperiksa pembaca dan bukan dipercaya begitu
-// saja.
+// Invariant: this panel displays the exact evidence backing every finding so
+// claims can be audited rather than taken on faith.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Badge, Button } from "@/shared/components";
@@ -25,8 +24,8 @@ const TOOL_LABEL = {
   shell: "Shell",
   load_skill: "Load skill",
   notes: "Notes",
-  spawn_agent: "Turunkan agent",
-  report_failure: "Lapor gagal",
+  spawn_agent: "Spawn agent",
+  report_failure: "Report failure",
   finish: "Finish",
 };
 
@@ -62,8 +61,8 @@ export default function AgentRunPanel({ models = [] }) {
     [models]
   );
 
-  // Status container diambil saat tab dibuka supaya dropdown tidak menampilkan
-  // runtime yang tidak terpasang di mesin ini.
+  // Container status is fetched when the tab opens so the dropdown does not
+  // list runtimes that are not installed on this machine.
   useEffect(() => {
     let cancelled = false;
     fetch("/api/developer/penetration/agent/info")
@@ -177,7 +176,7 @@ export default function AgentRunPanel({ models = [] }) {
 
       if (!response.ok || !response.body) {
         const detail = await response.json().catch(() => null);
-        throw new Error(detail?.error || `Server menolak (HTTP ${response.status})`);
+        throw new Error(detail?.error || `Server rejected request (HTTP ${response.status})`);
       }
 
       const reader = response.body.getReader();
@@ -189,7 +188,7 @@ export default function AgentRunPanel({ models = [] }) {
         if (done) break;
         buffer += decoder.decode(value, { stream: true });
 
-        // SSE dipisah baris kosong ganda; sisa parsial disimpan ke buffer.
+        // SSE events are separated by double newlines; keep trailing partial chunk in buffer.
         const chunks = buffer.split("\n\n");
         buffer = chunks.pop() || "";
         for (const chunk of chunks) {
@@ -198,7 +197,7 @@ export default function AgentRunPanel({ models = [] }) {
           try {
             handleEvent(JSON.parse(line.slice(5).trim()));
           } catch {
-            /* chunk rusak — abaikan, jangan mati karena satu baris */
+            /* malformed chunk — ignore, do not abort the stream for a single line */
           }
         }
       }
@@ -208,8 +207,8 @@ export default function AgentRunPanel({ models = [] }) {
       abortRef.current = null;
       setRunning(false);
     }
-    // handleEvent sengaja tidak jadi dependency: ia memakai setter fungsional
-    // sehingga tidak butuh nilai terbaru.
+    // handleEvent is intentionally omitted from deps: it uses functional state
+    // updates and does not depend on latest closure values.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [target, scope, instructions, effectiveModel, inject, maxSteps, runtime]);
 
@@ -229,41 +228,41 @@ export default function AgentRunPanel({ models = [] }) {
           </div>
           {info && (
             <span className="text-[11px] text-text-muted">
-              {info.runtime || "runtime belum ada"} · {info.image.split("/").pop()}
-              {!info.imageReady && " (image belum di-build)"}
+              {info.runtime || "no runtime available"} · {info.image.split("/").pop()}
+              {!info.imageReady && " (image not built)"}
             </span>
           )}
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2">
-          <Field label="Target" hint="URL, host, atau IP">
+          <Field label="Target" hint="URL, host, or IP">
             <input
               value={target}
               onChange={(e) => setTarget(e.target.value)}
-              placeholder="https://contoh.id atau 10.0.0.5"
+              placeholder="https://example.com or 10.0.0.5"
               disabled={running}
               className={INPUT}
             />
           </Field>
 
-          <Field label="Scope" hint="batas yang boleh diuji">
+          <Field label="Scope" hint="allowed testing boundaries">
             <input
               value={scope}
               onChange={(e) => setScope(e.target.value)}
-              placeholder="hanya /api/* dan login, jangan sentuh /admin"
+              placeholder="only /api/* and login, do not touch /admin"
               disabled={running}
               className={INPUT}
             />
           </Field>
 
-          <Field label="Model" hint="harus mendukung tool calling">
+          <Field label="Model" hint="must support tool calling">
             <select
               value={effectiveModel}
               onChange={(e) => setModel(e.target.value)}
               disabled={running || sortedModels.length === 0}
               className={INPUT}
             >
-              {sortedModels.length === 0 && <option value="">model belum termuat</option>}
+              {sortedModels.length === 0 && <option value="">models not loaded</option>}
               {sortedModels.map((m) => (
                 <option key={m.id} value={m.id}>
                   {m.name || m.id}
@@ -272,14 +271,14 @@ export default function AgentRunPanel({ models = [] }) {
             </select>
           </Field>
 
-          <Field label="Container" hint="podman atau docker">
+          <Field label="Container" hint="podman or docker">
             <select
               value={runtime}
               onChange={(e) => setRuntime(e.target.value)}
               disabled={running || (info?.available || []).length === 0}
               className={INPUT}
             >
-              {(info?.available || []).length === 0 && <option value="">runtime belum terpasang</option>}
+              {(info?.available || []).length === 0 && <option value="">no runtime installed</option>}
               {(info?.available || []).map((name) => (
                 <option key={name} value={name}>
                   {name}
@@ -288,7 +287,7 @@ export default function AgentRunPanel({ models = [] }) {
             </select>
           </Field>
 
-          <Field label="Maks langkah root" hint="1–40">
+          <Field label="Max root steps" hint="1–40">
             <select
               value={maxSteps}
               onChange={(e) => setMaxSteps(Number(e.target.value))}
@@ -304,13 +303,13 @@ export default function AgentRunPanel({ models = [] }) {
           </Field>
         </div>
 
-        <Field label="Instruksi tambahan" hint="opsional">
+        <Field label="Additional instructions" hint="optional">
           <textarea
             value={instructions}
             onChange={(e) => setInstructions(e.target.value)}
             rows={2}
             disabled={running}
-            placeholder="Fokus pada IDOR dan autentikasi lemah. Jangan ambil data production."
+            placeholder="Focus on IDOR and weak authentication. Do not exfiltrate production data."
             className="w-full resize-y rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text-main outline-none focus:border-border-strong/50 disabled:opacity-50"
           />
         </Field>
@@ -323,13 +322,13 @@ export default function AgentRunPanel({ models = [] }) {
             disabled={running}
             className="h-3.5 w-3.5 accent-[var(--color-primary)]"
           />
-          Pakai global injection
-          <span className="opacity-70">(default mati supaya hasil pengukuran tidak tercemar prompt router)</span>
+          Use global injection
+          <span className="opacity-70">(off by default so router prompts do not skew test results)</span>
         </label>
 
         {imageMissing && (
           <div className="rounded-lg border border-warning/40 bg-warning/5 px-3 py-2 text-xs text-text-muted">
-            Image sandbox belum ada di {info?.runtime}. Build sekali di terminal:
+            Sandbox image not found in {info?.runtime}. Build once in terminal:
             <code className="ml-1 text-text-main">
               {info?.runtime} build -t {info?.image} docker/pentest
             </code>
@@ -343,7 +342,7 @@ export default function AgentRunPanel({ models = [] }) {
             </Button>
           ) : (
             <Button icon="rocket_launch" onClick={start} disabled={!canStart}>
-              Jalan
+              Run
             </Button>
           )}
         </div>
@@ -361,8 +360,8 @@ export default function AgentRunPanel({ models = [] }) {
         <div className="flex flex-col gap-2 rounded-xl border border-border bg-surface/40">
           <div className="flex items-center gap-2 border-b border-border px-4 py-2">
             <span className="material-symbols-outlined text-[16px] text-text-muted">terminal</span>
-            <span className="text-sm font-medium text-text-main">Riwayat run</span>
-            <span className="ml-auto text-xs text-text-muted">{events.length} peristiwa</span>
+            <span className="text-sm font-medium text-text-main">Run history</span>
+            <span className="ml-auto text-xs text-text-muted">{events.length} events</span>
           </div>
           <div ref={logRef} className="max-h-[480px] overflow-y-auto px-4 py-3">
             <div className="flex flex-col gap-3">
@@ -405,7 +404,7 @@ export default function AgentRunPanel({ models = [] }) {
                   </div>
                 )
               )}
-              {running && <span className="text-xs text-text-muted">menunggu langkah berikutnya…</span>}
+              {running && <span className="text-xs text-text-muted">waiting for next step…</span>}
             </div>
           </div>
         </div>
@@ -437,10 +436,10 @@ function AgentTree({ agents }) {
       <div className="flex items-center gap-2">
         <span className="material-symbols-outlined text-[18px] text-primary">account_tree</span>
         <span className="text-sm font-semibold text-text-main">Agent</span>
-        <Badge variant="default">{agents.length} anak</Badge>
+        <Badge variant="default">{agents.length} sub-agents</Badge>
       </div>
       <div className="flex flex-col gap-1">
-        <TreeRow name="root" role="root" objective="mengecoordinasikan pengujian" status="root" />
+        <TreeRow name="root" role="root" objective="coordinating security test" status="root" />
         {agents.map((a) => (
           <TreeRow key={a.name} {...a} depth={1} />
         ))}
@@ -487,10 +486,10 @@ function RunResult({ result }) {
     <div className="flex flex-col gap-3 rounded-xl border border-border bg-surface/40 p-4">
       <div className="flex flex-wrap items-center gap-2">
         <span className="material-symbols-outlined text-[18px] text-primary">assignment_turned_in</span>
-        <span className="text-sm font-semibold text-text-main">Laporan</span>
-        <Badge variant="default">{findings.length} temuan</Badge>
-        <Badge variant="default">{result.evidenceCount} bukti</Badge>
-        {result.failed && <Badge variant="warning">berhenti: {result.reason}</Badge>}
+        <span className="text-sm font-semibold text-text-main">Report</span>
+        <Badge variant="default">{findings.length} findings</Badge>
+        <Badge variant="default">{result.evidenceCount} evidence</Badge>
+        {result.failed && <Badge variant="warning">stopped: {result.reason}</Badge>}
       </div>
 
       {report?.summary && (
@@ -518,13 +517,13 @@ function RunResult({ result }) {
             </div>
 
             {finding.impact && (
-              <p className="mt-1.5 text-xs text-text-muted">Dampak: {finding.impact}</p>
+              <p className="mt-1.5 text-xs text-text-muted">Impact: {finding.impact}</p>
             )}
 
             {finding.evidenceQuote && (
               <div className="mt-2">
                 <span className="text-[10px] uppercase tracking-wide text-text-muted">
-                  Bukti #{(finding.evidenceIds || []).join(", #")}
+                  Evidence #{(finding.evidenceIds || []).join(", #")}
                 </span>
                 <pre className="mt-1 max-h-48 overflow-auto whitespace-pre-wrap rounded bg-surface/70 px-2 py-1.5 text-[11px] text-text-main">
                   {finding.evidenceQuote}
@@ -533,7 +532,7 @@ function RunResult({ result }) {
             )}
 
             {finding.remediation && (
-              <p className="mt-2 text-xs text-text-muted">Perbaikan: {finding.remediation}</p>
+              <p className="mt-2 text-xs text-text-muted">Remediation: {finding.remediation}</p>
             )}
           </div>
         ))}
@@ -542,7 +541,7 @@ function RunResult({ result }) {
       {notTested.length > 0 && (
         <div className="rounded-lg border border-warning/30 bg-warning/5 px-3 py-2">
           <span className="text-xs font-medium text-text-main">
-            Tidak terverifikasi ({notTested.length})
+            Not verified ({notTested.length})
           </span>
           <ul className="mt-1 list-disc pl-4 text-[11px] text-text-muted">
             {notTested.map((t, i) => (

@@ -20,7 +20,7 @@
 export const OUTBOUND_FEATURES = [
   {
     key: "injectionEnabled",
-    label: "Global Injection — register + persona + jailbreak payload (+ carrier warp via persona) ke provider",
+    label: "Global Injection — register + persona + jailbreak payload (+ carrier warp via persona) to provider",
     category: "Payload steering",
     kind: "provider",
   },
@@ -32,67 +32,67 @@ export const OUTBOUND_FEATURES = [
   // splices into it (globalInject.js). No separate carrier settings key.
   {
     key: "rtkEnabled",
-    label: "RTK token saver — kompresi tool_result in-place",
+    label: "RTK token saver — in-place tool_result compression",
     category: "Token savers",
     kind: "provider",
   },
   {
     key: "headroomEnabled",
-    label: "Headroom — POST messages ke proxy compress eksternal",
+    label: "Headroom — POST messages to external compression proxy",
     category: "Token savers",
     kind: "provider",
   },
   {
     key: "cavemanEnabled",
-    label: "Caveman — inject system prompt gaya teks",
+    label: "Caveman — inject terse style system prompt",
     category: "Token savers",
     kind: "provider",
   },
   {
     key: "ponytailEnabled",
-    label: "Ponytail — inject system prompt gaya teks",
+    label: "Ponytail — inject concise engineering system prompt",
     category: "Token savers",
     kind: "provider",
   },
   {
     key: "pxpipeEnabled",
-    label: "Pxpipe — kompresi gambar in-process",
+    label: "Pxpipe — in-process image compression",
     category: "Token savers",
     kind: "provider",
   },
   {
     key: "claudeAutoPing",
-    label: "Claude quota auto-ping — request kecil otomatis ke provider",
+    label: "Claude quota auto-ping — automated lightweight ping to provider",
     category: "Background traffic",
     kind: "provider",
   },
   {
     key: "codexAutoPing",
-    label: "Codex quota auto-ping — request kecil otomatis ke provider",
+    label: "Codex quota auto-ping — automated lightweight ping to provider",
     category: "Background traffic",
     kind: "provider",
   },
   {
     key: "catalogSyncEnabled",
-    label: "Model catalog sync — GET harian ke models.dev",
+    label: "Model catalog sync — daily GET to models.dev",
     category: "Background traffic",
     kind: "network",
   },
   {
     key: "cloudEnabled",
-    label: "Cloud URL (9router.com) dipakai sebagai base URL CLI tools",
+    label: "Cloud URL (9router.com) used as CLI tools base URL",
     category: "Background traffic",
     kind: "network",
   },
   {
     key: "tunnelEnabled",
-    label: "Cloudflare tunnel — ekspos gateway ke publik",
+    label: "Cloudflare tunnel — expose gateway publicly",
     category: "Exposure",
     kind: "expose",
   },
   {
     key: "tailscaleEnabled",
-    label: "Tailscale funnel — ekspos gateway ke publik",
+    label: "Tailscale funnel — expose gateway publicly",
     category: "Exposure",
     kind: "expose",
   },
@@ -153,7 +153,7 @@ export function buildTogglePatch(featureKey, nextOn, settings = {}) {
   if (nextOn && !canToggleOn(featureKey)) {
     return {
       error:
-        "Auto-ping is per-koneksi — nyalakan per connection di halaman Quota Tracker.",
+        "Auto-ping is per-connection — enable it per connection on the Quota Tracker page.",
     };
   }
 

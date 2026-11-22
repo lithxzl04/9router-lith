@@ -277,8 +277,10 @@ async function buildDroidHeader() {
     ].join("\n");
   }
 
-  // Extract 9Router-Kiyoshi custom model config
-  const custom = settings?.customModels?.find(m => m.id === "custom:9Router-Kiyoshi-0");
+  // Extract 9router-lith / 9Router-Kiyoshi custom model config
+  const custom = settings?.customModels?.find(
+    m => m.id === "custom:9router-lith-0" || m.id === "custom:9Router-Kiyoshi-0"
+  );
   const lines = [`Status:   ${COLORS.green}✓ Configured${COLORS.reset}`];
   if (custom?.baseUrl) lines.push(`Endpoint: ${COLORS.cyan}${custom.baseUrl}${COLORS.reset}`);
   if (custom?.model)   lines.push(`Model:    ${COLORS.dim}${custom.model}${COLORS.reset}`);
@@ -684,7 +686,7 @@ async function showCliToolsMenu(port, breadcrumb = []) {
   await showMenuWithBack({
     title: "🔧 CLI Tools",
     breadcrumb,
-    headerContent: `Configure CLI tools to use 9Router-Kiyoshi\nEndpoint: ${endpoint}`,
+    headerContent: `Configure CLI tools to use 9router-lith\nEndpoint: ${endpoint}`,
     items: [
       {
         label: "Claude Code",

@@ -280,8 +280,8 @@ function enableLinux(cliPath) {
 
   const desktopContent = `[Desktop Entry]
 Type=Application
-Name=9Router-Kiyoshi
-Comment=9Router-Kiyoshi API Proxy
+Name=9router-lith
+Comment=9router-lith API Proxy
 Exec=${nodePath} ${routerScript} --tray --skip-update
 Hidden=false
 NoDisplay=false

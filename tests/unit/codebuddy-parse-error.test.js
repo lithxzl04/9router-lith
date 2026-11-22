@@ -16,7 +16,7 @@ describe("CodeBuddy parseError", () => {
     expect(parsed.resetsAtMs).toBeTruthy();
     expect(typeof parsed.resetsAtMs).toBe("number");
 
-    // 验证时区解析 (默认 UTC+8)
+    // Verify timezone parsing (default UTC+8)
     const expected = new Date("2026-09-28T14:30:00+08:00").getTime();
     expect(parsed.resetsAtMs).toBe(expected);
   });

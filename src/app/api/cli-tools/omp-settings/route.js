@@ -152,7 +152,7 @@ export async function POST(request) {
 
     return NextResponse.json({
       success: true,
-      message: "Oh My Pi settings applied! Run 'omp' and all 9Router-Kiyoshi models appear under 9router in /model.",
+      message: "Oh My Pi settings applied! Run 'omp' and all 9router-lith models appear under 9router in /model.",
       configPath: getOmpModelsYmlPath(),
     });
   } catch (err) {
@@ -174,7 +174,7 @@ export async function DELETE() {
 
     return NextResponse.json({
       success: true,
-      message: "9Router-Kiyoshi removed from Oh My Pi",
+      message: "9router-lith removed from Oh My Pi",
     });
   } catch (err) {
     return NextResponse.json({ error: { message: err.message } }, { status: 500 });

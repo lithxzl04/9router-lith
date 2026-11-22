@@ -137,7 +137,7 @@ export async function POST(request) {
     const normalizedBaseUrl = baseUrl.endsWith("/v1") ? baseUrl : `${baseUrl}/v1`;
     // Custom providers ignore auth.json - the key must travel as a static header
     setNestedSection(parsed, "model_providers.9router", {
-      name: "9Router-Kiyoshi",
+      name: "9router-lith",
       base_url: normalizedBaseUrl,
       wire_api: "responses",
       http_headers: { Authorization: `Bearer ${apiKey}` },
@@ -217,7 +217,7 @@ export async function DELETE() {
 
     return NextResponse.json({
       success: true,
-      message: "9Router-Kiyoshi settings removed successfully",
+      message: "9router-lith settings removed successfully",
     });
   } catch (error) {
     console.log("Error resetting codex settings:", error);

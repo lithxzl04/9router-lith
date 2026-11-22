@@ -23,7 +23,7 @@ const nowFails = r.testResults.flatMap(f => {
     .map(a => rel + " :: " + a.fullName);
 });
 
-// Regression = fail bây giờ NHƯNG không có trong baseline known-fails
+// Regression = fails now BUT is not in the baseline known-fails list
 const regressions = nowFails.filter(f => !knownFails.has(f));
 
 if (regressions.length) {

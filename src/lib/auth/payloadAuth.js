@@ -30,13 +30,13 @@ export async function assertPayloadAuth(request) {
 }
 
 /**
- * Penyesuaian untuk permintaan browser dari Origin yang sama.
+ * Same-origin check for browser requests.
  *
- * Browser tidak bisa memegang CLI token mesin, jadi gerbang AND murni membuat
- * tab penetration mustahil dijangkau dari UI. Yang tetap ditolak adalah
- * permintaan dari situs lain, karena browser selalu mengirim header Origin pada
- * POST lintas situs — jadi ini menutup lubang CSRF sambil membiarkan sesi
- * dashboard yang sudah login tetap bisa menjalankan pengujian.
+ * Browsers cannot hold the machine CLI token, so a pure AND gate would make
+ * the penetration tab unreachable from the UI. Cross-site requests are still
+ * rejected because browsers always send the Origin header on cross-site POSTs —
+ * closing the CSRF vector while allowing authenticated dashboard sessions to
+ * run tests.
  */
 function isSameOriginBrowserRequest(request) {
   if (!request) return false;
@@ -51,19 +51,18 @@ function isSameOriginBrowserRequest(request) {
       return false;
     }
   }
-  // Tanpa Origin: permintaan ini bukan browser lintas situs. Skrip lokal
-  // (curl, CLI) juga tidak punya Origin, tapi tetap harus lewat CLI token.
+  // Without Origin: not a cross-site browser request. Local scripts (curl, CLI)
+  // also omit Origin, but they authenticate via the CLI token above.
   const site = headers.get("sec-fetch-site");
   return site === "same-origin" || site === "none";
 }
 
 /**
- * Gate untuk route eksekusi skill (tab penetration, design §5.3).
+ * Auth gate for skill execution routes (penetration tab, design §5.3).
  *
- * Terima: Token CLI mesin, atau sesi dashboard yang sah asal datang dari
- * Origin yang sama dengan host. menjalankan skill adalah permukaan eksekusi,
- * bukan sekadar tampilan — itu sebabnya gerbang ini lebih ketat daripada OR-gate
- * milik assertPayloadAuth.
+ * Accepts: machine CLI token, or a valid dashboard session originating from the
+ * same Origin as the host. Skill execution is an active execution surface rather
+ * than a read-only view, so this gate is stricter than assertPayloadAuth's OR-gate.
  */
 export async function assertPenetrationAuth(request) {
   const cookieStore = await cookies();

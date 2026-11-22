@@ -12,7 +12,7 @@ export default function HowItWorks() {
       num: "02",
       icon: "hub",
       title: "Local gateway",
-      desc: "9Router-Kiyoshi intercepts requests, validates API key quotas, and injects configured prompt presets.",
+      desc: "9router-lith intercepts requests, validates API key quotas, and injects configured prompt presets.",
     },
     {
       num: "03",

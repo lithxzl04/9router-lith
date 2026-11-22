@@ -158,7 +158,7 @@ export function getProvidersByKind(kind) {
     .sort((a, b) => (a.priority ?? a.mediaPriority ?? 999) - (b.priority ?? b.mediaPriority ?? 999));
 }
 
-// Derive từ registry features flags
+// Derive from registry features flags
 export const USAGE_SUPPORTED_PROVIDERS = REGISTRY
   .filter(r => r.features?.usage)
   .map(r => r.id);

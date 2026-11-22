@@ -1,8 +1,8 @@
-# DISCLOSURE — 9router-plinian
+# DISCLOSURE — 9router-lith
 
 ## What this package is
 
-`9router-plinian` is a local AI routing gateway and CLI. It proxies requests to 40+
+`9router-lith` is a local AI routing gateway and CLI. It proxies requests to 40+
 upstream LLM providers (OpenAI-compatible, Anthropic, Gemini, etc.) and bundles a
 dashboard for managing provider credentials, model-combo fallback, quota/usage
 tracking, and OAuth/API-key rotation.

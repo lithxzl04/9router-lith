@@ -134,7 +134,7 @@ export default function TransparencyClient({
               model: targetModel.requestModel || targetModel.id,
               messages: [
                 ...(systemPrompt ? [{ role: "system", content: systemPrompt }] : []),
-                { role: "user", content: draft || "(kosong)" },
+                { role: "user", content: draft || "(empty)" },
               ],
               stream: false,
               temperature: 0.7,
@@ -143,7 +143,7 @@ export default function TransparencyClient({
           });
           const { content, reasoning } = await readChatResponse(r);
           setThinking(reasoning);
-          setResponse(content || "(respons kosong)");
+          setResponse(content || "(empty response)");
           try {
             const rd = await fetchWithTimeout("/api/developer/transparency", {
               method: "POST",
@@ -157,11 +157,11 @@ export default function TransparencyClient({
             setRespFinding(rdd.requestDetection || []);
           } catch {}
         } catch (e) {
-          setResponse(`Chat error: ${e?.name === "AbortError" ? "waktu habis (timeout)" : e?.message || e}`);
+          setResponse(`Chat error: ${e?.name === "AbortError" ? "timed out" : e?.message || e}`);
         }
       }
     } catch (e) {
-      setResponse(`Error: ${e?.name === "AbortError" ? "waktu habis (timeout)" : e?.message || e}`);
+      setResponse(`Error: ${e?.name === "AbortError" ? "timed out" : e?.message || e}`);
     } finally {
       setBusy(false);
     }
@@ -179,8 +179,8 @@ export default function TransparencyClient({
     <div className="flex flex-col gap-3">
       <div className={card}>
         <p className={muted}>
-          Alur transparansi injeksi (Red-Team). Isi prompt lalu jalankan — setiap tahap di bawah menunjukkan
-          transformasi yang diterapkan gateway, diakhiri dengan Result Statistics.
+          Red-Team injection transparency flow. Enter a prompt and run — each stage below shows
+          the transformations applied by the gateway, ending with Result Statistics.
         </p>
         <label className="mt-3 block text-xs text-text-muted">User Request (prompt)</label>
         <textarea
@@ -188,13 +188,13 @@ export default function TransparencyClient({
           onChange={(e) => setLocalDraft(e.target.value)}
           className={ta}
           rows={3}
-          placeholder="Tulis prompt yang akan diuji…"
+          placeholder="Write a prompt to test…"
         />
         <label className="mt-3 block text-xs text-text-muted">Token Saver sample (tool_result)</label>
         <textarea value={tokenSample} onChange={(e) => setTokenSample(e.target.value)} className={ta} rows={4} />
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <select value={sendModel} onChange={(e) => setSendModel(e.target.value)} className={btn}>
-            <option value="">— model (opsional) —</option>
+            <option value="">— model (optional) —</option>
             {modelOptions.map((m) => (
               <option key={m.id} value={m.id}>
                 {m.label}
@@ -202,14 +202,14 @@ export default function TransparencyClient({
             ))}
           </select>
           <button className={btnPrimary} onClick={run} disabled={busy}>
-            {busy ? "Memproses…" : "Jalankan"}
+            {busy ? "Running…" : "Run"}
           </button>
           <button className={btn} onClick={() => setDraft && setDraft(draft)}>
-            Ke draft
+            To draft
           </button>
         </div>
         <p className={muted + " mt-2"}>
-          State injeksi aktif: Global {injection?.enabled ? `ON (register ${injection.level} + payload ${injection.godmodeLevel})` : "off"}
+          Active injection state: Global {injection?.enabled ? `ON (register ${injection.level} + payload ${injection.godmodeLevel})` : "off"}
         </p>
       </div>
 
@@ -223,10 +223,10 @@ export default function TransparencyClient({
         {inj ? (
           <>
             <p className={muted}>
-              Original: <span className="text-text-main">{inj.tokenSaver.original}</span> char · Compressed:{" "}
-              <span className="text-text-main">{inj.tokenSaver.compressed}</span> char · Hemat:{" "}
-              <span className="text-text-main">{inj.tokenSaver.savedChars}</span> char (~
-              {inj.tokenSaver.savedTokens} token)
+              Original: <span className="text-text-main">{inj.tokenSaver.original}</span> chars · Compressed:{" "}
+              <span className="text-text-main">{inj.tokenSaver.compressed}</span> chars · Saved:{" "}
+              <span className="text-text-main">{inj.tokenSaver.savedChars}</span> chars (~
+              {inj.tokenSaver.savedTokens} tokens)
             </p>
             <p className="mt-1 text-[11px] text-text-muted">{inj.tokenSaver.note}</p>
             {inj.tokenSaver.compressedSample ? <pre className={pre}>{inj.tokenSaver.compressedSample}</pre> : null}
@@ -238,22 +238,22 @@ export default function TransparencyClient({
 
       <div className={card}>
         <div className={stageTitle}>3 · Register Inject</div>
-        {inj?.registerText ? <pre className={pre}>{inj.registerText}</pre> : <p className={muted}>tidak aktif</p>}
+        {inj?.registerText ? <pre className={pre}>{inj.registerText}</pre> : <p className={muted}>inactive</p>}
       </div>
 
       <div className={card}>
         <div className={stageTitle}>4 · Payload Godmode Inject</div>
-        {inj?.godmodeText ? <pre className={pre}>{inj.godmodeText}</pre> : <p className={muted}>tidak aktif</p>}
+        {inj?.godmodeText ? <pre className={pre}>{inj.godmodeText}</pre> : <p className={muted}>inactive</p>}
       </div>
 
       <div className={card}>
-        <div className={stageTitle}>Outbound · Request final ke model</div>
+        <div className={stageTitle}>Outbound · Final request to model</div>
         {inj ? (
           <>
             <p className={muted}>System (register + payload):</p>
-            <pre className={pre}>{inj.outboundSystem ? inj.outboundSystem : "(kosong — tidak ada injeksi aktif)"}</pre>
+            <pre className={pre}>{inj.outboundSystem ? inj.outboundSystem : "(empty — no active injection)"}</pre>
             <p className={muted}>User:</p>
-            <pre className={pre}>{draft.trim() ? draft : "(kosong)"}</pre>
+            <pre className={pre}>{draft.trim() ? draft : "(empty)"}</pre>
             {inj.tokenSaver?.compressedSample ? (
               <>
                 <p className={muted}>tool_result (token saver applied):</p>
@@ -268,7 +268,7 @@ export default function TransparencyClient({
 
       <div className={card}>
         <div className={stageTitle}>5 · Model&apos;s Thinking</div>
-        {thinking ? <pre className={pre}>{thinking}</pre> : <p className={muted}>tidak tersedia (model tidak mengembalikan reasoning)</p>}
+        {thinking ? <pre className={pre}>{thinking}</pre> : <p className={muted}>not available (model did not return reasoning)</p>}
       </div>
 
       <div className={card}>
@@ -298,7 +298,7 @@ export default function TransparencyClient({
       <div className={card}>
         <div className={stageTitle}>Result Statistics</div>
         {findings.length === 0 ? (
-          <p className={muted}>Tidak ada temuan deteksi.</p>
+          <p className={muted}>No detection findings.</p>
         ) : (
           <>
             <div className="mb-3 flex flex-wrap gap-3 text-xs">

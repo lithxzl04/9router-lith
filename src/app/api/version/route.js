@@ -1,8 +1,9 @@
 import https from "https";
 import pkg from "../../../../package.json" with { type: "json" };
+import { UPDATER_CONFIG } from "@/shared/constants/config";
 
 // GitHub Releases is the update source of truth (npm package is deprecated).
-const ghRepo = process.env.UPDATER_GH_REPO || "Azhar457/9router";
+const ghRepo = process.env.UPDATER_GH_REPO || UPDATER_CONFIG.ghRepo || "rifqi1146/9router-kiyoshi";
 const VERSION_CACHE_TTL_MS = 3600000; // cache latest-release lookup for 1h
 
 // Survive hot reload; one cache per process
@@ -75,8 +76,12 @@ async function getLatestVersionCached() {
 }
 
 export async function GET() {
-  const latestVersion = await getLatestVersionCached();
   const currentVersion = pkg.version;
+  // ponytail: self-update check disabled on custom 9router-lith build unless UPDATER_GH_REPO is explicitly set
+  if (UPDATER_CONFIG.disabled && !process.env.UPDATER_GH_REPO) {
+    return Response.json({ currentVersion, latestVersion: currentVersion, hasUpdate: false });
+  }
+  const latestVersion = await getLatestVersionCached();
   const hasUpdate = latestVersion ? compareVersions(latestVersion, currentVersion) > 0 : false;
 
   return Response.json({ currentVersion, latestVersion, hasUpdate });

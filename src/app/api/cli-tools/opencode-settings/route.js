@@ -257,7 +257,7 @@ export async function DELETE(request) {
 
     return NextResponse.json({
       success: true,
-      message: modelToRemove ? `Model "${modelToRemove}" removed` : "9Router-Kiyoshi settings removed from OpenCode",
+      message: modelToRemove ? `Model "${modelToRemove}" removed` : "9router-lith settings removed from OpenCode",
     });
   } catch (error) {
     console.log("Error resetting opencode settings:", error);

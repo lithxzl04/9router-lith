@@ -1718,7 +1718,7 @@ export default function DeveloperPageClient() {
         {hasRestored && !restoredDismissed && (
           <span className="flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs text-primary">
             <span className="material-symbols-outlined text-[14px]">history</span>
-            restored dari sesi terakhir
+            restored from last session
             <button
               onClick={() => setRestoredDismissed(true)}
               className="material-symbols-outlined text-[14px] hover:text-text-main"
@@ -1874,7 +1874,7 @@ export default function DeveloperPageClient() {
               models: {raceIds.length} · calls: {raceIds.length * (MODEL_ID_PAYLOADS[midSuite]?.length || 0) * midSamples}
             </span>
             <span className="text-xs text-text-muted">
-              Suite berlabel model-agnostic: custom model &amp; wrapper via <code>/v1/models</code> ikut terdeteksi.
+              Model-agnostic labeled suite: custom models &amp; wrappers via <code>/v1/models</code> are also detected.
             </span>
             {!midBusy ? (
               <Button icon="send" size="sm" onClick={runMidSuite}>Run suite</Button>
@@ -1918,7 +1918,7 @@ export default function DeveloperPageClient() {
                       <button
                         onClick={() => toggleRaceModel(id)}
                         className="text-text-muted hover:text-red-500"
-                        title="hapus"
+                        title="remove"
                       >
                         ×
                       </button>
@@ -1955,7 +1955,7 @@ export default function DeveloperPageClient() {
                     <tr key={payload.id} className="border-b border-border/40 align-top">
                       <td className="py-1.5 pr-2 font-mono text-text-muted">
                         {payload.id}
-                        <div className="text-[10px] text-text-muted/60">{payload.kategori}</div>
+                        <div className="text-[10px] text-text-muted/60">{payload.category || payload.kategori}</div>
                       </td>
                       {cells.map(({ id, done, running, last, entry }) => {
                         const samples = entry?.samples || [];
@@ -2126,7 +2126,7 @@ export default function DeveloperPageClient() {
                       <button
                         onClick={() => toggleRaceModel(id)}
                         className="text-text-muted hover:text-red-500"
-                        title="hapus"
+                        title="remove"
                       >
                         ×
                       </button>

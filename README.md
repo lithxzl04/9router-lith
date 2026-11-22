@@ -1,14 +1,14 @@
 <div align="center">
-  <img src="./images/9router-kiyoshi.png" alt="9Router Kiyoshi" width="100%" style="max-width:100%;height:auto"/>
+  <img src="./images/9router-kiyoshi.png" alt="9router-lith" width="100%" style="max-width:100%;height:auto"/>
 
-  # 9Router-Kiyoshi
+  # 9router-lith
 
-  **Production-grade AI gateway & routing proxy for coding agents (Cline, OpenCode, Codex, Claude Code)** — an optimized edition based on **[9Router Plinian](https://github.com/Azhar457/9router)** (by Azhar457) & **[9Router](https://github.com/decolua/9router)** (by decolua), featuring 7-Layer Anti-Ban Armor from **[OmniRoute](https://github.com/cheaper-inference/OmniRoute)**, Live Provider Pulse observability, and a solid AMOLED design system.
+  **Production-grade AI gateway & routing proxy for coding agents (Cline, OpenCode, Codex, Claude Code)** — a customized edition based on **[9Router-Kiyoshi](https://github.com/rifqi1146/9router-kiyoshi/)**, **[9Router Plinian](https://github.com/Azhar457/9router)** (by Azhar457), & **[9Router](https://github.com/decolua/9router)** (by decolua), featuring 7-Layer Anti-Ban Armor from **[OmniRoute](https://github.com/cheaper-inference/OmniRoute)**, Live Provider Pulse observability, and a cohesive purple-inspired AMOLED design system.
 
-  [![Version](https://img.shields.io/badge/version-v0.6.7--kiyoshi-blue.svg)](./CHANGELOG.md)
+  [![Version](https://img.shields.io/badge/version-v0.6.7--lith-purple.svg)](./CHANGELOG.md)
   [![License](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
 
-  [⬇️ Install](#-install) • [🍴 What's in Kiyoshi Edition](#-whats-in-kiyoshi-edition) • [🛡️ 7-Layer Anti-Ban](#-antigravity-anti-ban-armor) • [📊 Live Provider Pulse](#-live-provider-pulse-telemetry) • [🙏 Acknowledgments](#-acknowledgments)
+  [⬇️ Install](#-installation) • [🍴 What's in This Edition](#-whats-in-kiyoshi-edition) • [🛡️ 7-Layer Anti-Ban](#-antigravity-anti-ban-armor) • [📊 Live Provider Pulse](#-live-provider-pulse-telemetry) • [🙏 Acknowledgments](#-acknowledgments)
 
 </div>
 
@@ -16,10 +16,11 @@
 
 ## 🔀 Lineage & About This Fork
 
-This repository is **9Router-Kiyoshi**, an independently maintained production edition built on top of:
-1. **[9Router Plinian](https://github.com/Azhar457/9router)** (`Azhar457/9router`, v0.6.7) — which introduced the Go entry proxy, Red Team Toolkit, external payload registry, and custom payload trees.
-2. **[9Router](https://github.com/decolua/9router)** (`decolua/9router`) — the original project providing the multi-provider routing engine, translator core, combo fallback, and Next.js dashboard.
-3. **[OmniRoute](https://github.com/cheaper-inference/OmniRoute)** (`cheaper-inference/OmniRoute`) — source of the multi-layer Antigravity header scrubbing, 429 guard, family-level cooldown, and pacing patches.
+This repository is **9router-lith**, a customized production edition built on top of:
+1. **[9Router-Kiyoshi](https://github.com/rifqi1146/9router-kiyoshi/)** (`rifqi1146/9router-kiyoshi`, v0.6.7) — which introduced Live Provider Pulse telemetry, Stream Passthrough Sentinel Finalize, Native Antigravity SSE-to-JSON, Server Overview Dashboard, and Access Key Injection switches.
+2. **[9Router Plinian](https://github.com/Azhar457/9router)** (`Azhar457/9router`, v0.6.7) — which introduced the Go entry proxy, Red Team Toolkit, external payload registry, and custom payload trees.
+3. **[9Router](https://github.com/decolua/9router)** (`decolua/9router`) — the original project providing the multi-provider routing engine, translator core, combo fallback, and Next.js dashboard.
+4. **[OmniRoute](https://github.com/cheaper-inference/OmniRoute)** (`cheaper-inference/OmniRoute`) — source of the multi-layer Antigravity header scrubbing, 429 guard, family-level cooldown, and pacing patches.
 
 ### Why Kiyoshi Exists
 Heavy coding-agent workloads (e.g. Cline, OpenCode, Codex) frequently send massive prompts (**100k–380k prompt tokens per turn**). Under these real-world conditions, standard gateways hit subtle failures:
@@ -128,15 +129,15 @@ cd cli
 npm install -g .
 
 # Launch background daemon
-9router-kiyoshi -p 20128 --host 0.0.0.0 --skip-update --no-browser
+9router-lith -p 20128 --host 0.0.0.0 --skip-update --no-browser
 ```
 
 Common CLI flags:
 ```bash
-9router-kiyoshi --port 20128     # port (default: 20128)
-9router-kiyoshi --host 0.0.0.0   # bind address
-9router-kiyoshi --no-browser     # disable opening browser automatically
-9router-kiyoshi --skip-update    # bypass startup version check
+9router-lith --port 20128     # port (default: 20128)
+9router-lith --host 0.0.0.0   # bind address
+9router-lith --no-browser     # disable opening browser automatically
+9router-lith --skip-update    # bypass startup version check
 ```
 
 The dashboard will be accessible at:
@@ -201,9 +202,10 @@ Security-relevant environment variables (see `.env.example`):
 
 ## 🙏 Acknowledgments
 
-9Router-Kiyoshi stands on the work of:
+9router-lith stands on the work of:
 
-- **[Azhar457](https://github.com/Azhar457)** and **[9Router Plinian](https://github.com/Azhar457/9router)** — the immediate upstream fork providing the Go entry proxy, Red Team Toolkit, custom payloads scan tree, and provider-curation work.
+- **[9Router-Kiyoshi](https://github.com/rifqi1146/9router-kiyoshi/)** — the immediate upstream foundation providing Live Provider Pulse, stream sentinel finalization, and Antigravity integration.
+- **[Azhar457](https://github.com/Azhar457)** and **[9Router Plinian](https://github.com/Azhar457/9router)** — the upstream fork providing the Go entry proxy, Red Team Toolkit, custom payloads scan tree, and provider-curation work.
 - **[OmniRoute](https://github.com/cheaper-inference/OmniRoute)** — creators of the 7-layer Antigravity anti-ban defense system, header scrubbing, and jittered pacing architecture.
 - **[decolua](https://github.com/decolua)** and all contributors to **[9Router](https://github.com/decolua/9router)** — the original foundational AI routing gateway project.
 - **[CLIProxyAPI](https://github.com/1rgs/CLIProxyAPI)** — original Go implementation that inspired 9Router.

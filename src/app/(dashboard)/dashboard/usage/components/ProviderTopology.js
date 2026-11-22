@@ -41,7 +41,7 @@ function ProviderNode({ data }) {
       className="flex items-center gap-2.5 px-3.5 py-2 rounded-control border transition-all duration-200 bg-surface"
       style={{
         borderColor: active ? "var(--color-brass-500)" : "var(--color-border)",
-        boxShadow: active ? "0 0 14px -2px rgba(139, 106, 63, 0.45)" : "none",
+        boxShadow: active ? "0 0 14px -2px rgba(139, 92, 246, 0.45)" : "none",
         minWidth: "140px",
       }}
     >
@@ -93,7 +93,7 @@ ProviderNode.propTypes = {
   data: PropTypes.object.isRequired,
 };
 
-// Center 9Router-Kiyoshi node — pulse ring + animated label when traffic is live
+// Center 9router-lith node — pulse ring + animated label when traffic is live
 function RouterNode({ data }) {
   const powering = (data.activeCount || 0) > 0;
   return (
@@ -125,7 +125,7 @@ function RouterNode({ data }) {
           powering ? "topology-router-label text-brass-600 dark:text-brass-300" : "text-text-main"
         }`}
       >
-        9Router-Kiyoshi
+        9router-lith
       </span>
       {data.activeCount > 0 && (
         <span className="ml-2 px-1.5 py-0.5 rounded-chip bg-brass-500 text-white text-xs font-bold topology-router-badge">
@@ -218,11 +218,11 @@ function TopologyEdge({
           stroke: "var(--color-brass-100)",
           strokeWidth: 2.6,
           opacity: 1,
-          filter: "drop-shadow(0 0 6px rgba(220, 196, 158, 0.95))",
+          filter: "drop-shadow(0 0 6px rgba(221, 214, 254, 0.95))",
         }}
         className="topology-edge-kame"
       />
-      {/* Energy orbs: two sizes, alternating warm brass and cool forest so the
+      {/* Energy orbs: two sizes, alternating lavender and amethyst so the
           stream reads as current moving through the wire, not a static cable. */}
       {Array.from({ length: KAME_PARTICLE_COUNT }, (_, i) => {
         const big = i % 2 === 0;
@@ -240,7 +240,7 @@ function TopologyEdge({
             r={big ? 4.2 : 2.2}
             fill={colour}
             opacity={big ? 1 : 0.8}
-            style={{ filter: "drop-shadow(0 0 7px rgba(220, 196, 158, 0.95)) drop-shadow(0 0 14px rgba(139, 106, 63, 0.6))" }}
+            style={{ filter: "drop-shadow(0 0 7px rgba(221, 214, 254, 0.95)) drop-shadow(0 0 14px rgba(139, 92, 246, 0.6))" }}
           >
             <animateMotion
               dur={`${0.34 + (i % 5) * 0.06}s`}

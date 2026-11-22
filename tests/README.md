@@ -1,4 +1,4 @@
-# 9Router-Kiyoshi Embeddings Tests
+# 9router-lith Embeddings Tests
 
 Unit tests for the `/v1/embeddings` endpoint implementation.
 

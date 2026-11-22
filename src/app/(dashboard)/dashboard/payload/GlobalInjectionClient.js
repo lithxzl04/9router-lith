@@ -868,7 +868,7 @@ export default function GlobalInjectionClient({ payloadCatalog }) {
                   onChange={handleInjectIdentityChange}
                   rows={2}
                   readOnly={!injectEnabled}
-                  placeholder="Optional identity override, prepended first — e.g. &quot;You are 9Router-Kiyoshi, the local AI routing gateway. If asked who you are, answer: I'm 9Router-Kiyoshi — local gateway. Ready.&quot;"
+                  placeholder="Optional identity override, prepended first — e.g. &quot;You are 9router-lith, the local AI routing gateway. If asked who you are, answer: I'm 9router-lith — local gateway. Ready.&quot;"
                   className="w-full resize-y rounded-lg border border-border bg-surface px-3 py-2 font-mono text-xs text-text-main outline-none focus:border-border-strong/50"
                 />
               </div>
@@ -877,7 +877,7 @@ export default function GlobalInjectionClient({ payloadCatalog }) {
               <section className="flex flex-col gap-1.5 rounded-lg border border-border bg-surface-2/30 p-2.5">
                 <header className="flex items-center justify-between">
                   <span className="text-[11px] font-semibold uppercase tracking-wide text-text-main">① Preset &amp; Prompt list</span>
-                  <span className="text-[10px] text-text-muted">variant payload atau preset tersimpan — dipakai apa adanya (WYSIWYG)</span>
+                  <span className="text-[10px] text-text-muted">payload variant or saved preset — sent as-is (WYSIWYG)</span>
                 </header>
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="w-24 text-[11px] font-semibold uppercase tracking-wide text-text-muted">Payload</span>
@@ -954,7 +954,7 @@ export default function GlobalInjectionClient({ payloadCatalog }) {
               <section className="flex flex-col gap-1.5 rounded-lg border border-border bg-surface-2/30 p-2.5">
                 <header className="flex items-center justify-between">
                   <span className="text-[11px] font-semibold uppercase tracking-wide text-text-main">② Payload editor</span>
-                  <span className="text-[10px] text-text-muted">mengedit otomatis memindah selector ke Custom</span>
+                  <span className="text-[10px] text-text-muted">editing automatically switches selector to Custom</span>
                 </header>
                 <textarea
                   value={godmodeEditorText}
@@ -993,7 +993,7 @@ export default function GlobalInjectionClient({ payloadCatalog }) {
               <section className="flex flex-col gap-1.5 rounded-lg border border-border bg-surface-2/30 p-2.5">
                 <header className="flex items-center justify-between">
                   <span className="text-[11px] font-semibold uppercase tracking-wide text-text-main">④ Register prompt</span>
-                  <span className="text-[10px] text-text-muted">teks custom menimpa preset — dikirim apa adanya</span>
+                  <span className="text-[10px] text-text-muted">custom text overrides preset — sent as-is</span>
                 </header>
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="w-24 text-[11px] font-semibold uppercase tracking-wide text-text-muted">Register</span>

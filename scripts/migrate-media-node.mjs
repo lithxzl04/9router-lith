@@ -1,34 +1,34 @@
 #!/usr/bin/env node
-// migrate-media-node.mjs — Opsi B: declare node openai-compatible (e.g. ag-ai)
-// sebagai media provider + retype custom models sesuai nama.
+// migrate-media-node.mjs — Option B: declare an openai-compatible node (e.g. ag-ai)
+// as a media provider and retype custom models according to their names.
 //
-// 1. Baca data: semua providerNodes + customModels dari backup JSON (atau DB live).
-// 2. Auto-detect serviceKinds dari nama custom models:
+// 1. Read data: all providerNodes + customModels from backup JSON (or live DB).
+// 2. Auto-detect serviceKinds from custom model names:
 //    /image|imagen|dall-?e|flux|sdxl/ → image
 //    /video/ → video
 //    /embed/ → embedding
 //    /tts|speech|audio|voice/ → tts
-// 3. Update node.providerNodes.data.serviceKinds (merge, tidak replace).
-// 4. Retype custom models: hapus row `providerAlias|id|llm`, bikin
-//    `providerAlias|id|<newtype>` (via /api/models/custom, atau DB
-//    langsung kalau --db).
+// 3. Update node.providerNodes.data.serviceKinds (merge, do not replace).
+// 4. Retype custom models: delete row `providerAlias|id|llm`, create
+//    `providerAlias|id|<newtype>` (via /api/models/custom, or directly in DB
+//    when --db is passed).
 //
-// Keamanan:
-//   - --dry-run default. Tambah --force buat nulis.
-//   - --db path sqlite langsung (WAL safe, pola migrate-db.mjs).
-//   - --http URL base server (default http://127.0.0.1:20128) — nulis
-//     via API (putar lewat dashboardGuard).
-//   - --node <nodeId|prefix> scope: cuma proses node tsb. Default: semua
-//     node openai-compatible / anthropic-compatible / custom-embedding.
+// Safety:
+//   - --dry-run by default. Pass --force to write.
+//   - --db <path> writes directly to SQLite (WAL-safe, follows migrate-db.mjs pattern).
+//   - --http <url> base server URL (default http://127.0.0.1:20128) — writes
+//     via API (authenticated through dashboardGuard).
+//   - --node <nodeId|prefix> scope: only process that node. Default: all
+//     openai-compatible / anthropic-compatible / custom-embedding nodes.
 //
-// Contoh:
-//   # 1. Dry-run dari backup
+// Examples:
+//   # 1. Dry-run from backup
 //   node scripts/migrate-media-node.mjs --from <backup.json>
 //
-//   # 2. Tulis via API (server harus jalan + log in)
+//   # 2. Write via API (server must be running + logged in)
 //   node scripts/migrate-media-node.mjs --force --http http://127.0.0.1:20128 --node ag-ai
 //
-//   # 3. Tulis langsung ke DB (server stop dulu)
+//   # 3. Write directly to DB (stop server first)
 //   node scripts/migrate-media-node.mjs --force --db ~/.9router/db/data.sqlite --node ag-ai
 
 import path from "node:path";
@@ -66,9 +66,9 @@ const httpBase = args.http || null;
 const nodeIdOrPrefix = args.node || null;
 
 // ── Auto-detect rules ────────────────────────────────────────────────
-// Nama model → service kind. Urutan: embedding > tts > video > image > llm.
-// (video di-sebelum image: "video" sering mengandung "clip" bukan "image".
-//  image di-cari setelah video biar "agnes-image-2.5" gak keclaim "video".)
+// Model name → service kind. Order: embedding > tts > video > image > llm.
+// (video before image: "video" often contains "clip" rather than "image";
+//  image checked after video so "agnes-image-2.5" is not claimed as "video".)
 function inferServiceKind(modelId) {
   const lower = String(modelId || "").toLowerCase();
   if (/embed/.test(lower)) return "embedding";
@@ -126,7 +126,7 @@ function computePlan(data) {
   const plan = { nodes: [], modelRetypes: [] };
   for (const node of nodes) {
     // Custom models registered under this node (providerAlias = node.id,
-    // atau prefix jika user pakai prefix-based model alias).
+    // or prefix if the user uses a prefix-based model alias).
     const modelsForNode = customModels.filter(
       (m) => m.providerAlias === node.id || m.providerAlias === node.prefix
     );
@@ -245,7 +245,7 @@ async function applyHttp(base, plan) {
   const url = (p) => `${base.replace(/\/$/, "")}${p}`;
 
   // 1. Node serviceKinds: PUT /api/provider-nodes/{id}
-  //    (route butuh semua field: name, prefix, apiType, baseUrl — baca dulu.)
+  //    (route requires all fields: name, prefix, apiType, baseUrl — fetch first.)
   for (const n of plan.nodes) {
     const getNode = await fetch(url(`/api/provider-nodes/${n.id}`)).then((r) => r.json());
     if (!getNode?.node) throw new Error(`GET node ${n.id} failed: ${JSON.stringify(getNode)}`);

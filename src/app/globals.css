@@ -19,71 +19,67 @@
 }
 
 /* ============================================================
-   Kiyoshi theme tokens. Three modes, one palette:
-     :root          Paper    warm paper + forest green + brass
-     .dark          Charcoal neutral charcoal, same green/brass identity
-     .dark.amoled   AMOLED   true black surfaces, brass-tinted text
-
-   Values are lifted from the Kiyoshi Store / kiyoshi-api token files so
-   all three surfaces read as one brand. Solid colours only; no alpha
-   washes on surfaces, no violet, no glow shadows.
+   9router-lith purple theme tokens. Three modes, one palette:
+     :root          Paper    lavender paper + royal purple + soft violet
+     .dark          Charcoal obsidian violet, amethyst/lavender identity
+     .dark.amoled   AMOLED   true black surfaces, lavender-tinted text
    ============================================================ */
 :root {
-  /* Brand scale: forest green. 800 is the action colour on paper. */
-  --color-brand-50: #EEF2ED;
-  --color-brand-100: #E8EEE6;
-  --color-brand-200: #CFD9CB;
-  --color-brand-300: #A5B7A0;
-  --color-brand-400: #6E8A68;
-  --color-brand-500: #4A6547;
-  --color-brand-600: #34512F;
-  --color-brand-700: #2B4937;
-  --color-brand-800: #203A2B;
-  --color-brand-900: #1A3023;
-  --color-brand-950: #122218;
+  /* Brand scale: royal amethyst purple. 800 is the action colour on paper. */
+  --color-brand-50: #F5F2FF;
+  --color-brand-100: #EDE6FF;
+  --color-brand-200: #DDD0FF;
+  --color-brand-300: #C3ACFF;
+  --color-brand-400: #A37EFA;
+  --color-brand-500: #8456EC;
+  --color-brand-600: #6D3CD9;
+  --color-brand-700: #5829BE;
+  --color-brand-800: #461E9E;
+  --color-brand-900: #36167D;
+  --color-brand-950: #220C52;
 
-  /* Brass: interaction accent. Never used as a large fill. */
-  --color-brass-50: #F7F1E7;
-  --color-brass-100: #F2EADF;
-  --color-brass-200: #E8E0D3;
-  --color-brass-300: #C0A175;
-  --color-brass-400: #A88755;
-  --color-brass-500: #8B6A3F;
-  --color-brass-600: #765832;
-  --color-brass-700: #5F4729;
-  --color-brass-800: #46341F;
-  --color-brass-900: #2E2315;
+  /* Lavender accent (retains --color-brass-* variable names for component compat). */
+  --color-brass-50: #F6F3FF;
+  --color-brass-100: #EDE8FF;
+  --color-brass-200: #DDD4FF;
+  --color-brass-300: #B7A4F8;
+  --color-brass-400: #9B82F3;
+  --color-brass-500: #7C5CE6;
+  --color-brass-600: #6644D4;
+  --color-brass-700: #5232B8;
+  --color-brass-800: #3F2491;
+  --color-brass-900: #2B1766;
 
-  --color-primary: #203A2B;
-  --color-primary-hover: #2B4937;
-  --color-accent: #8B6A3F;
+  --color-primary: #461E9E;
+  --color-primary-hover: #5829BE;
+  --color-accent: #7C5CE6;
 
   /* Surfaces */
-  --color-bg: #F6F4EE;
-  --color-bg-alt: #F0EEE7;
+  --color-bg: #F7F5FC;
+  --color-bg-alt: #F0ECF9;
   --color-surface: #FFFFFF;
-  --color-surface-2: #F0EEE7;
-  --color-surface-3: #E6E2D8;
-  --color-sidebar: rgba(246, 244, 238, 0.88);
+  --color-surface-2: #F0ECF9;
+  --color-surface-3: #E5DFF3;
+  --color-sidebar: rgba(247, 245, 252, 0.88);
 
   /* Rules. Hairline is decorative separation, border is the input edge,
      border-strong is the focused edge (a darker version of the same hairline,
      never a separate accent colour). */
-  --color-border: #DED8CC;
-  --color-border-subtle: #EAE5DA;
-  --color-border-strong: #C2BAA9;
+  --color-border: #DCD5EC;
+  --color-border-subtle: #E9E4F5;
+  --color-border-strong: #BFB3DC;
 
   /* Text */
-  --color-text: #242722;
-  --color-text-main: #242722;
-  --color-text-muted: #686B64;
-  --color-text-subtle: #8A8C84;
+  --color-text: #1E1A2B;
+  --color-text-main: #1E1A2B;
+  --color-text-muted: #635C78;
+  --color-text-subtle: #857D9E;
 
   /* Status */
-  --color-danger: #B8442A;
-  --color-success: #2E5D3A;
-  --color-warning: #8B6A3F;
-  --color-info: #4A6547;
+  --color-danger: #B83A3A;
+  --color-success: #2E6F4E;
+  --color-warning: #B4691E;
+  --color-info: #6D3CD9;
 
   /* Remap families (consumed by @theme inline below).
      600 is the readable-on-surface shade, 400 the readable-on-dark shade. */
@@ -120,41 +116,41 @@
   --k-brass-800: #46341F;
   --k-brass-900: #2E2315;
 
-  --k-sage-50: #F1F3F0;
-  --k-sage-100: #E4E8E3;
-  --k-sage-200: #CBD2C9;
-  --k-sage-300: #AEB8AC;
-  --k-sage-400: #9AAE9A;
-  --k-sage-500: #5C715C;
-  --k-sage-600: #4C5F4C;
-  --k-sage-700: #3B4A3B;
-  --k-sage-800: #2C372C;
-  --k-sage-900: #1E261E;
+  --k-sage-50: #F4F0FF;
+  --k-sage-100: #EBE3FF;
+  --k-sage-200: #D8C9FF;
+  --k-sage-300: #BBA4FF;
+  --k-sage-400: #9F7AEA;
+  --k-sage-500: #7C3AED;
+  --k-sage-600: #6D28D9;
+  --k-sage-700: #5B21B6;
+  --k-sage-800: #4C1D95;
+  --k-sage-900: #2E1065;
 
-  --k-ink-50: #F6F4EE;
-  --k-ink-100: #F0EEE7;
-  --k-ink-200: #E6E2D8;
-  --k-ink-300: #DED8CC;
-  --k-ink-400: #9A9C93;
-  --k-ink-500: #7C7F77;
-  --k-ink-600: #686B64;
-  --k-ink-700: #4E514B;
-  --k-ink-800: #34372F;
-  --k-ink-900: #242722;
+  --k-ink-50: #F7F5FC;
+  --k-ink-100: #F0ECF9;
+  --k-ink-200: #E5DFF3;
+  --k-ink-300: #DCD5EC;
+  --k-ink-400: #9B93B3;
+  --k-ink-500: #7E7599;
+  --k-ink-600: #635C78;
+  --k-ink-700: #49425C;
+  --k-ink-800: #312B40;
+  --k-ink-900: #1E1A2B;
 
   /* Radius: card > control > chip. Deliberately not one pill for everything. */
   --radius-brand: 10px;
   --radius-brand-lg: 14px;
 
   /* Elevation: neutral, no colour, no glow. */
-  --shadow-soft: 0 1px 2px 0 rgba(36, 39, 34, 0.05);
-  --shadow-warm: 0 12px 24px -20px rgba(36, 39, 34, 0.28);
-  --shadow-elevated: 0 12px 24px -20px rgba(36, 39, 34, 0.28);
+  --shadow-soft: 0 1px 2px 0 rgba(30, 26, 43, 0.05);
+  --shadow-warm: 0 12px 24px -20px rgba(30, 26, 43, 0.28);
+  --shadow-elevated: 0 12px 24px -20px rgba(30, 26, 43, 0.28);
   --shadow-elev:
     inset 0 1px 0 0 rgba(255, 255, 255, 0.7),
-    0 1px 2px rgba(36, 39, 34, 0.05),
-    0 12px 24px -20px rgba(36, 39, 34, 0.28);
-  --shadow-focus: 0 0 0 3px rgba(139, 106, 63, 0.26);
+    0 1px 2px rgba(30, 26, 43, 0.05),
+    0 12px 24px -20px rgba(30, 26, 43, 0.28);
+  --shadow-focus: 0 0 0 3px rgba(124, 92, 230, 0.28);
   --shadow-low: var(--shadow-soft);
   --shadow-high: var(--shadow-elev);
   --shadow-brand: var(--shadow-warm);
@@ -169,34 +165,34 @@
 }
 
 /* ------------------------------------------------------------
-   Charcoal. Same forest/brass identity, neutral (not blue) greys.
+   Charcoal (Obsidian Violet). Same purple/lavender identity, deep violet-tinted dark surfaces.
    Every `dark:` utility in the codebase keys off this class.
    ------------------------------------------------------------ */
 .dark {
-  --color-primary: #4A6547;
-  --color-primary-hover: #5A7F55;
-  --color-accent: #C0A175;
+  --color-primary: #7C3AED;
+  --color-primary-hover: #8B5CF6;
+  --color-accent: #A78BFA;
 
-  --color-bg: #131513;
-  --color-bg-alt: #191C19;
-  --color-surface: #191C19;
-  --color-surface-2: #1F231F;
-  --color-surface-3: #262B26;
-  --color-sidebar: rgba(19, 21, 19, 0.88);
+  --color-bg: #121018;
+  --color-bg-alt: #181520;
+  --color-surface: #181520;
+  --color-surface-2: #201C2B;
+  --color-surface-3: #292437;
+  --color-sidebar: rgba(18, 16, 24, 0.88);
 
-  --color-border: #2E332E;
-  --color-border-subtle: #232823;
-  --color-border-strong: #454B45;
+  --color-border: #2D283E;
+  --color-border-subtle: #221E30;
+  --color-border-strong: #463E61;
 
-  --color-text: #E8E6DF;
-  --color-text-main: #E8E6DF;
-  --color-text-muted: #9A9C93;
-  --color-text-subtle: #74776F;
+  --color-text: #EAE6F5;
+  --color-text-main: #EAE6F5;
+  --color-text-muted: #9B93B3;
+  --color-text-subtle: #736B8C;
 
-  --color-danger: #D2674E;
-  --color-success: #7FA87A;
-  --color-warning: #C0A175;
-  --color-info: #8FAE8A;
+  --color-danger: #E06C6C;
+  --color-success: #68B88E;
+  --color-warning: #D99B4E;
+  --color-info: #A78BFA;
 
   /* Same families, inverted for a dark ground: 400 carries text, 600 is the
      solid fill that takes white text. */
@@ -233,27 +229,27 @@
   --k-brass-800: #5F4729;
   --k-brass-900: #46341F;
 
-  --k-sage-50: #161A16;
-  --k-sage-100: #1E261E;
-  --k-sage-200: #2C372C;
-  --k-sage-300: #5C715C;
-  --k-sage-400: #9AAE9A;
-  --k-sage-500: #8FA38F;
-  --k-sage-600: #5C715C;
-  --k-sage-700: #4C5F4C;
-  --k-sage-800: #3B4A3B;
-  --k-sage-900: #2C372C;
+  --k-sage-50: #171226;
+  --k-sage-100: #211838;
+  --k-sage-200: #2E214F;
+  --k-sage-300: #5B21B6;
+  --k-sage-400: #A78BFA;
+  --k-sage-500: #8B5CF6;
+  --k-sage-600: #7C3AED;
+  --k-sage-700: #6D28D9;
+  --k-sage-800: #5B21B6;
+  --k-sage-900: #4C1D95;
 
-  --k-ink-50: #191C19;
-  --k-ink-100: #1F231F;
-  --k-ink-200: #262B26;
-  --k-ink-300: #2E332E;
-  --k-ink-400: #9A9C93;
-  --k-ink-500: #7C7F77;
-  --k-ink-600: #686B64;
-  --k-ink-700: #4E514B;
-  --k-ink-800: #34372F;
-  --k-ink-900: #242722;
+  --k-ink-50: #181520;
+  --k-ink-100: #201C2B;
+  --k-ink-200: #292437;
+  --k-ink-300: #2D283E;
+  --k-ink-400: #9B93B3;
+  --k-ink-500: #7E7599;
+  --k-ink-600: #635C78;
+  --k-ink-700: #49425C;
+  --k-ink-800: #312B40;
+  --k-ink-900: #1E1A2B;
 
   --shadow-soft: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
   --shadow-warm: 0 12px 24px -20px rgba(0, 0, 0, 0.7);
@@ -262,7 +258,7 @@
     inset 0 1px 0 0 rgba(255, 255, 255, 0.04),
     0 1px 2px rgba(0, 0, 0, 0.45),
     0 12px 24px -20px rgba(0, 0, 0, 0.7);
-  --shadow-focus: 0 0 0 3px rgba(192, 161, 117, 0.28);
+  --shadow-focus: 0 0 0 3px rgba(167, 139, 250, 0.30);
 
   color-scheme: dark;
 }
@@ -273,30 +269,30 @@
    the selector needs both classes.
    ------------------------------------------------------------ */
 .dark.amoled {
-  --color-primary: #3F6B4A;
-  --color-primary-hover: #4E8059;
-  --color-accent: #C9AC80;
+  --color-primary: #6D28D9;
+  --color-primary-hover: #7C3AED;
+  --color-accent: #C4B5FD;
 
   --color-bg: #000000;
-  --color-bg-alt: #050505;
-  --color-surface: #0A0A0A;
-  --color-surface-2: #121212;
-  --color-surface-3: #1A1A1A;
+  --color-bg-alt: #06050A;
+  --color-surface: #0B0912;
+  --color-surface-2: #13101E;
+  --color-surface-3: #1C172B;
   --color-sidebar: #000000;
 
-  --color-border: #1F1F1F;
-  --color-border-subtle: #141414;
-  --color-border-strong: #3A3A3A;
+  --color-border: #211C30;
+  --color-border-subtle: #151120;
+  --color-border-strong: #3D3459;
 
-  --color-text: #F2F1EC;
-  --color-text-main: #F2F1EC;
-  --color-text-muted: #9C9E97;
-  --color-text-subtle: #6E7069;
+  --color-text: #F3F0FA;
+  --color-text-main: #F3F0FA;
+  --color-text-muted: #9E96B8;
+  --color-text-subtle: #706889;
 
-  --color-danger: #D2674E;
-  --color-success: #7BA374;
-  --color-warning: #C9AC80;
-  --color-info: #93BC8B;
+  --color-danger: #E06C6C;
+  --color-success: #68B88E;
+  --color-warning: #E0A65A;
+  --color-info: #B794F4;
 
   /* True black ground: fills stay near-black so the panel is genuinely off;
      only text-weight shades and 600-level fills carry colour. */
@@ -333,33 +329,33 @@
   --k-brass-800: #5F4729;
   --k-brass-900: #46341F;
 
-  --k-sage-50: #0B0E0B;
-  --k-sage-100: #121612;
-  --k-sage-200: #1A211A;
-  --k-sage-300: #3B4A3B;
-  --k-sage-400: #A3B8A3;
-  --k-sage-500: #8FA38F;
-  --k-sage-600: #5C715C;
-  --k-sage-700: #4C5F4C;
-  --k-sage-800: #3B4A3B;
-  --k-sage-900: #2C372C;
+  --k-sage-50: #0E0A1A;
+  --k-sage-100: #161029;
+  --k-sage-200: #22183D;
+  --k-sage-300: #4C1D95;
+  --k-sage-400: #B794F4;
+  --k-sage-500: #9F7AEA;
+  --k-sage-600: #7C3AED;
+  --k-sage-700: #6D28D9;
+  --k-sage-800: #5B21B6;
+  --k-sage-900: #3B1578;
 
-  --k-ink-50: #0A0A0A;
-  --k-ink-100: #121212;
-  --k-ink-200: #1A1A1A;
-  --k-ink-300: #1F1F1F;
-  --k-ink-400: #9C9E97;
-  --k-ink-500: #7C7F77;
-  --k-ink-600: #686B64;
-  --k-ink-700: #4E514B;
-  --k-ink-800: #34372F;
-  --k-ink-900: #242722;
+  --k-ink-50: #0B0912;
+  --k-ink-100: #13101E;
+  --k-ink-200: #1C172B;
+  --k-ink-300: #211C30;
+  --k-ink-400: #9E96B8;
+  --k-ink-500: #7E7599;
+  --k-ink-600: #635C78;
+  --k-ink-700: #49425C;
+  --k-ink-800: #312B40;
+  --k-ink-900: #1E1A2B;
 
   --shadow-soft: 0 1px 2px 0 rgba(0, 0, 0, 0.9);
   --shadow-warm: none;
   --shadow-elevated: none;
   --shadow-elev: none;
-  --shadow-focus: 0 0 0 3px rgba(201, 172, 128, 0.32);
+  --shadow-focus: 0 0 0 3px rgba(196, 181, 253, 0.34);
 
   color-scheme: dark;
 }
@@ -453,18 +449,18 @@ select {
   --color-bg-base: var(--color-bg);
 
   /* Static fallbacks (mode-aware) */
-  --color-bg-light: #F6F4EE;
-  --color-bg-dark: #131513;
+  --color-bg-light: #F7F5FC;
+  --color-bg-dark: #121018;
   --color-surface-light: #FFFFFF;
-  --color-surface-dark: #191C19;
-  --color-sidebar-light: #F6F4EE;
-  --color-sidebar-dark: #131513;
-  --color-border-light: #DED8CC;
-  --color-border-dark: #2E332E;
-  --color-text-main-light: #242722;
-  --color-text-main-dark: #E8E6DF;
-  --color-text-muted-light: #686B64;
-  --color-text-muted-dark: #9A9C93;
+  --color-surface-dark: #181520;
+  --color-sidebar-light: #F7F5FC;
+  --color-sidebar-dark: #121018;
+  --color-border-light: #DCD5EC;
+  --color-border-dark: #2D283E;
+  --color-text-main-light: #1E1A2B;
+  --color-text-main-dark: #EAE6F5;
+  --color-text-muted-light: #635C78;
+  --color-text-muted-dark: #9B93B3;
 
   /* Radius */
   --radius-brand: var(--radius-brand);
@@ -662,13 +658,13 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Selection: brass tint on paper, forest tint on dark. */
+/* Selection: lavender tint on paper, deep violet tint on dark. */
 ::selection {
   background-color: var(--color-brass-200);
   color: var(--color-brass-900);
 }
 .dark ::selection {
-  background-color: #3A3222;
+  background-color: #261C45;
   color: var(--color-brass-100);
 }
 
@@ -872,18 +868,18 @@ button:disabled,
   0%, 100% {
     box-shadow:
       0 0 0 1px var(--color-brass-500),
-      0 0 10px 0 rgba(192, 161, 117, 0.45),
-      0 0 26px 2px rgba(139, 106, 63, 0.35),
-      0 0 52px 6px rgba(63, 107, 74, 0.22),
-      inset 0 0 12px rgba(192, 161, 117, 0.18);
+      0 0 10px 0 rgba(167, 139, 250, 0.45),
+      0 0 26px 2px rgba(124, 92, 230, 0.35),
+      0 0 52px 6px rgba(109, 40, 217, 0.22),
+      inset 0 0 12px rgba(167, 139, 250, 0.18);
   }
   50% {
     box-shadow:
       0 0 0 1px var(--color-brass-300),
-      0 0 18px 2px rgba(201, 172, 128, 0.7),
-      0 0 44px 6px rgba(139, 106, 63, 0.55),
-      0 0 84px 12px rgba(63, 107, 74, 0.35),
-      inset 0 0 20px rgba(201, 172, 128, 0.32);
+      0 0 18px 2px rgba(196, 181, 253, 0.7),
+      0 0 44px 6px rgba(124, 92, 230, 0.55),
+      0 0 84px 12px rgba(109, 40, 217, 0.35),
+      inset 0 0 20px rgba(196, 181, 253, 0.32);
   }
 }
 @keyframes topology-edge-dash {
@@ -916,8 +912,8 @@ button:disabled,
 .topology-router-ring {
   background: radial-gradient(
     ellipse at center,
-    rgba(201, 172, 128, 0.55) 0%,
-    rgba(139, 106, 63, 0.28) 45%,
+    rgba(196, 181, 253, 0.55) 0%,
+    rgba(124, 92, 230, 0.28) 45%,
     transparent 72%
   );
   filter: blur(6px);
@@ -932,15 +928,15 @@ button:disabled,
   0%, 100% {
     opacity: 0.9;
     text-shadow:
-      0 0 6px rgba(201, 172, 128, 0.55),
-      0 0 14px rgba(139, 106, 63, 0.35);
+      0 0 6px rgba(196, 181, 253, 0.55),
+      0 0 14px rgba(124, 92, 230, 0.35);
   }
   50% {
     opacity: 1;
     text-shadow:
-      0 0 10px rgba(220, 196, 158, 0.9),
-      0 0 24px rgba(192, 161, 117, 0.65),
-      0 0 40px rgba(63, 107, 74, 0.35);
+      0 0 10px rgba(221, 214, 254, 0.9),
+      0 0 24px rgba(167, 139, 250, 0.65),
+      0 0 40px rgba(109, 40, 217, 0.35);
   }
 }
 .topology-router-label {

@@ -17,7 +17,7 @@ const lib = vi.hoisted(() => ({ dir: "" }));
 vi.mock("open-sse/payload/jailbreakPayloads.js", async () => {
   const fs = await import("node:fs");
   const pathMod = await import("node:path");
-  // nested dir umum (meniru walkAutoscan + slugify produksi: id = slug path relatif)
+  // generic nested dir walk (mirrors production walkAutoscan + slugify: id = relative path slug)
   const walk = (d, rel = []) => {
     const out = [];
     if (!fs.existsSync(d)) return out;
@@ -54,7 +54,7 @@ vi.mock("open-sse/payload/jailbreakPayloads.js", async () => {
   return {
     getCustomDir: () => lib.dir,
     getCustomPayloads: rows,
-    // Production helper menambahkan full text ke row.
+    // Production helper attaches full text to the row.
     getCustomPayload: (id) => { const r = rows().find((x) => x.id === id); return r && { ...r, text: fs.readFileSync(pathMod.join(lib.dir, ...r.file.split("/")), "utf8") }; },
     deleteCustomPayload: (id) => {
       if (!String(id).startsWith("f:custom:")) return false;
@@ -62,7 +62,7 @@ vi.mock("open-sse/payload/jailbreakPayloads.js", async () => {
       if (!row) return false;
       try { fs.unlinkSync(pathMod.join(lib.dir, ...row.file.split("/"))); return true; } catch { return false; }
     },
-    // CRUD-nya harus mega-kipas registry agar dropdown fresh tanpa restart.
+    // CRUD operations must refresh the registry so dropdowns stay current without a restart.
     refreshCustomPayloadRegistry: vi.fn(() => { refreshCount.n += 1; }),
     refreshCount,
     renameCustomPayload: (id, rawName) => {
@@ -176,19 +176,19 @@ beforeEach(() => {
 });
 
 describe("GET", () => {
-  it("401 ketika auth gagal", async () => {
+  it("401 when auth fails", async () => {
     payloadAuth.ok = false;
     const res = await route.GET(toReq("http://x/"));
     expect(res.status).toBe(401);
   });
 
-  it("list kosong → rows: []", async () => {
+  it("empty list → rows: []", async () => {
     const res = await route.GET(get());
     expect(res.status).toBe(200);
     expect((await res.json()).rows).toEqual([]);
   });
 
-  it("GET ?id= mengembalikan full text; unknown → 404", async () => {
+  it("GET ?id= returns full text; unknown → 404", async () => {
     await route.POST(post({ name: "alpha.md", text: "A" }));
     const full = await (await route.GET(get("f:custom:alpha"))).json();
     expect(full.text).toBe("A");
@@ -197,8 +197,8 @@ describe("GET", () => {
 });
 
 describe("POST — manual save", () => {
-  it("menulis file & slugify nama — dan membuat dir yang belum ada (regresi ENOENT)", async () => {
-    expect(existsSync(lib.dir)).toBe(false); // dir belum ada
+  it("writes file & slugifies name — and creates directory if missing (ENOENT regression)", async () => {
+    expect(existsSync(lib.dir)).toBe(false); // dir does not exist yet
     const res = await route.POST(post({ name: "My Great Prompt!.md", text: "x".repeat(10) }));
     expect(res.status).toBe(200);
     const body = await res.json();
@@ -206,7 +206,7 @@ describe("POST — manual save", () => {
     expect(readFileSync(path.join(lib.dir, "my-great-prompt.md"), "utf8")).toBe("x".repeat(10));
   });
 
-  it("empty text → 400; .txt disimpan jadi .md", async () => {
+  it("empty text → 400; .txt saved as .md", async () => {
     expect((await route.POST(post({ name: "a.md", text: "" }))).status).toBe(400);
     const txt = await route.POST(post({ name: "b.txt", text: "hello" }));
     expect((await txt.json()).names).toEqual(["b.md"]);
@@ -218,17 +218,17 @@ describe("POST — manual save", () => {
 });
 
 describe("POST — import URL", () => {
-  it("host tidak diizinkan → 400", async () => {
+  it("disallowed host → 400", async () => {
     const res = await route.POST(post({ url: "https://evil.example.com/p.md" }));
     expect(res.status).toBe(400);
     expect((await res.json()).error).toMatch(/github\.com/);
   });
 
-  it("protocol selain https → 400", async () => {
+  it("protocol other than https → 400", async () => {
     expect((await route.POST(post({ url: "http://raw.githubusercontent.com/a/b/c.md" }))).status).toBe(400);
   });
 
-  it("raw file URL → fetch, simpan asal nama file", async () => {
+  it("raw file URL → fetch, save original filename", async () => {
     const res = await route.POST(post({ url: "https://raw.githubusercontent.com/o/r/main/payload.md" }));
     expect(res.status).toBe(200);
     const body = await res.json();
@@ -243,23 +243,23 @@ describe("POST — import URL", () => {
     const body = await res.json();
     expect(body.saved).toBe(5);
     expect(body.names.sort()).toEqual([
-      "aux-file.txt",                 // segmen `con` dibuang (reserved Windows), stem `aux` → `-file`
-      "my-payload.md",
-      "nul-file.txt",                 // stem `nul` reserved Windows → akhiran `-file`
+      "aux-file.txt",                 // segment `con` dropped (reserved Windows), stem `aux` → `-file`
+      "my-payload-dcce4e.md",
+      "nul-file.txt",                 // stem `nul` reserved Windows → suffix `-file`
       "sub/nested.txt",
-      "sub/sub-dir/deep.txt",         // folder `sub dir.` → trailing dot di-strip → `sub-dir`
+      "sub/sub-dir/deep.txt",         // folder `sub dir.` → trailing dot stripped → `sub-dir`
     ]);
-    // struktur folder repo dipertahankan di bawah custom dir (rel path “/” di semua OS)
+    // repo folder structure preserved under custom dir (relative path "/" on all OSes)
     expect(readFileSync(path.join(lib.dir, "sub", "nested.txt"), "utf8")).toBe("nested repo payload");
     const list = await (await route.GET(get())).json();
     expect(list.rows.map((r) => r.id).sort().join(",")).toBe(
-      "f:custom:aux-file,f:custom:my-payload,f:custom:nul-file,f:custom:sub-nested,f:custom:sub-sub-dir-deep"
+      "f:custom:aux-file,f:custom:my-payload-dcce4e,f:custom:nul-file,f:custom:sub-nested,f:custom:sub-sub-dir-deep"
     );
-    // temp tar dir dibersihkan di finally (dir route = `9r-custom-<timestamp>`, full digit)
+    // temp tar dir cleaned up in finally (`9r-custom-<timestamp>`)
     expect(readdirSync(os.tmpdir()).filter((d) => /^9r-custom-\d+$/.test(d))).toEqual([]);
   });
 
-  it("repo URL > 200 file → cap 200, flag truncated + note", async () => {
+  it("repo URL > 200 files → cap at 200, flag truncated + note", async () => {
     execMock.big = true;
     const res = await route.POST(post({ url: "https://github.com/o/r" }));
     execMock.big = false;
@@ -270,7 +270,7 @@ describe("POST — import URL", () => {
     expect(body.note).toMatch(/Imported 200 of 201 files \(limit 200 reached\)/);
   });
 
-  it("repo import tanpa cap → tanpa flag truncated", async () => {
+  it("repo import below cap → no truncated flag", async () => {
     const res = await route.POST(post({ url: "https://github.com/o/r" }));
     const body = await res.json();
     expect(body.truncated).toBeUndefined();
@@ -278,7 +278,7 @@ describe("POST — import URL", () => {
 });
 
 describe("DELETE", () => {
-  it("hapus existing → ok:true & file lenyap", async () => {
+  it("delete existing → ok:true & file removed", async () => {
     await route.POST(post({ name: "doomed.md", text: "bye" }));
     const res = await route.DELETE(del("f:custom:doomed"));
     expect(res.status).toBe(200);
@@ -286,12 +286,12 @@ describe("DELETE", () => {
     expect(existsSync(path.join(lib.dir, "doomed.md"))).toBe(false);
   });
 
-  it("unknown id → 404; tanpa id → 400", async () => {
+  it("unknown id → 404; missing id → 400", async () => {
     expect((await route.DELETE(del("f:custom:none"))).status).toBe(404);
     expect((await route.DELETE(del())).status).toBe(400);
   });
 
-  it("batch {ids} → hapus semua yang match, lapor yang unknown", async () => {
+  it("batch {ids} → delete all matching, report unknown", async () => {
     await route.POST(post({ name: "batch-a.md", text: "a" }));
     await route.POST(post({ name: "batch-b.md", text: "b" }));
     const res = await route.DELETE(delBatch(["f:custom:batch-a", "f:custom:ghost"]));
@@ -302,7 +302,7 @@ describe("DELETE", () => {
     expect(existsSync(path.join(lib.dir, "batch-b.md"))).toBe(true);
   });
 
-  it("batch kosong → 400; batch yang valid → deleted hitung", async () => {
+  it("empty batch → 400; valid batch → returns deleted count", async () => {
     expect((await route.DELETE(delBatch([]))).status).toBe(400);
     await route.POST(post({ name: "batch-c.md", text: "c" }));
     const res = await route.DELETE(delBatch(["f:custom:batch-c"]));
@@ -311,8 +311,8 @@ describe("DELETE", () => {
   });
 });
 
-describe("PATCH — rename & kategori", () => {
-  it("{name} → file & id ikut berubah; 409 saat tabrakan", async () => {
+describe("PATCH — rename & category", () => {
+  it("{name} → file & id change accordingly; 409 on collision", async () => {
     await route.POST(post({ name: "old-name.md", text: "payload" }));
     const res = await route.PATCH(patch({ id: "f:custom:old-name", name: "New Name!" }));
     const body = await res.json();
@@ -320,12 +320,12 @@ describe("PATCH — rename & kategori", () => {
     expect(body.id).toBe("f:custom:new-name");
     expect(existsSync(path.join(lib.dir, "old-name.md"))).toBe(false);
     expect(existsSync(path.join(lib.dir, "new-name.md"))).toBe(true);
-    // tabrakan dengan payload lain
+    // collision with another payload
     await route.POST(post({ name: "taker.md", text: "t" }));
     expect((await route.PATCH(patch({ id: "f:custom:taker", name: "new-name" }))).status).toBe(409);
   });
 
-  it("{cat} → flag baris pertama di file; invalid → 400", async () => {
+  it("{cat} → first-line flag in file; invalid → 400", async () => {
     await route.POST(post({ name: "catty.md", text: "body text" }));
     const res = await route.PATCH(patch({ id: "f:custom:catty", cat: "pentest" }));
     expect(await res.json()).toMatchObject({ ok: true, cat: "pentest" });
@@ -335,7 +335,7 @@ describe("PATCH — rename & kategori", () => {
     expect((await route.PATCH(patch({ id: "f:custom:catty", cat: "nope" }))).status).toBe(400);
   });
 
-  it("rename & cat sekaligus; unknown id → 404; tanpa field → 400", async () => {
+  it("rename & cat together; unknown id → 404; no fields → 400", async () => {
     await route.POST(post({ name: "combo.md", text: "hello" }));
     const res = await route.PATCH(patch({ id: "f:custom:combo", name: "Combo X", cat: "coding" }));
     const body = await res.json();
@@ -345,7 +345,7 @@ describe("PATCH — rename & kategori", () => {
     expect((await route.PATCH(patch({ id: "f:custom:combo-x" }))).status).toBe(400);
   });
 
-  it("tiap mutasi memicu refreshCustomPayloadRegistry (dropdown fresh tanpa restart)", async () => {
+  it("every mutation triggers refreshCustomPayloadRegistry (dropdown stays fresh without restart)", async () => {
     await route.POST(post({ name: "rf.md", text: "t" }));
     await route.PATCH(patch({ id: "f:custom:rf", cat: "general" }));
     await route.DELETE(del("f:custom:rf"));

@@ -1,6 +1,6 @@
-# 9Router Plinian — Independent 9Router Fork with a Red-Team Toolkit
+# 9router-lith — Customized 9Router Fork with a Red-Team Toolkit
 
-**Independent fork of [9Router](https://github.com/decolua/9router)** — the same multi-provider gateway, plus **Red Team Toolkit**, **Aurora Violet UI**, and **image generation for custom nodes**.
+**Independent fork of [9Router-Kiyoshi](https://github.com/rifqi1146/9router-kiyoshi/) & [9Router](https://github.com/decolua/9router)** — the same multi-provider gateway, plus **Red Team Toolkit**, **Purple AMOLED UI**, and **image generation for custom nodes**.
 
 **One OpenAI-compatible endpoint for every AI coding tool — plus model-aware payload testing for authorized red-team work.**
 
@@ -95,14 +95,14 @@ That's it! Start coding with FREE AI models.
 
 ---
 
-## 🚀 CLI Options
+### 🚀 CLI Options
 
 ```bash
-9router-kiyoshi                 # Start with default settings
-9router-kiyoshi --port 8080     # Custom port
-9router-kiyoshi --no-browser    # Don't open browser
-9router-kiyoshi --skip-update   # Skip auto-update check
-9router-kiyoshi --help          # Show all options
+9router-lith                 # Start with default settings
+9router-lith --port 8080     # Custom port
+9router-lith --no-browser    # Don't open browser
+9router-lith --skip-update   # Skip auto-update check
+9router-lith --help          # Show all options
 ```
 
 **Dashboard**: `http://localhost:20128/dashboard`

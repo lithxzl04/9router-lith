@@ -1,12 +1,12 @@
-// P0 GOLDEN: lock OUTPUT của translateRequest (body) cho các đích đặc biệt.
+// P0 GOLDEN: lock translateRequest (body) OUTPUT for specialized targets.
 // openai → claude/gemini/kiro: thinking, tools, image, system, tool_result.
-// Sau refactor chạy lại phải khớp y hệt.
+// Must match identically after refactoring.
 import { describe, it, expect } from "vitest";
 import "./registerAll.js";
 import { translateRequest } from "../../open-sse/translator/index.js";
 import { FORMATS } from "../../open-sse/translator/formats.js";
 
-// Body openai mẫu phủ nhiều concern (text, image, tool, tool_result, system, thinking).
+// Sample OpenAI body covering multiple concerns (text, image, tool, tool_result, system, thinking).
 function baseBody() {
   return {
     messages: [

@@ -134,15 +134,15 @@ export default function PenetrationTabClient() {
 
   const [acknowledged, setAcknowledged] = useState(false);
 
-  // Dua mode dalam satu halaman: kartu SKILL-ROUTER-STRIX yang sudah ada
-  // (index skill, tidak ada eksekusi) dan Agent yang benar-benar menjalankan
-  // tool. Mode default "agent" supaya halaman ini-lead what it actually does.
+  // Two modes on one page: the existing SKILL-ROUTER-STRIX card
+  // (skill index, no execution) and the Agent tab that actively executes
+  // tools. Default mode is "agent" so the page leads with what it actually does.
   const [mode, setMode] = useState("agent");
   const [agentModels, setAgentModels] = useState([]);
 
-  // Daftar model untuk dropdown Agent. Dimuat sekali saat tab agent dipakai,
-  // bukan saat mount: halaman ini sebelumnya tidak butuh /v1/models sama sekali
-  // dan memaksa semua pengguna untuk membayar biaya load itu.
+  // Model list for the Agent dropdown. Loaded once when the agent tab is used,
+  // not on mount: previously this page did not need /v1/models at all and
+  // forced every user to pay that load cost.
   useEffect(() => {
     if (mode !== "agent" || agentModels.length > 0) return;
     let cancelled = false;
@@ -156,7 +156,7 @@ export default function PenetrationTabClient() {
         );
       })
       .catch(() => {
-        /* dropdown akan menampilkan "model belum termuat" — cukup jelas */
+        /* dropdown will display "models not loaded" — clear enough */
       });
     return () => {
       cancelled = true;

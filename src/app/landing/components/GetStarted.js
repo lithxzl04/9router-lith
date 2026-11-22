@@ -26,7 +26,7 @@ export default function GetStarted() {
 
             <div className="flex flex-col gap-4">
               {[
-                { n: "1", title: "Run the binary", desc: "Execute npx 9router-kiyoshi to launch the gateway." },
+                { n: "1", title: "Run the binary", desc: "Execute npx 9router-lith to launch the gateway." },
                 { n: "2", title: "Configure providers", desc: "Add API keys or configure OAuth in the dashboard." },
                 { n: "3", title: "Route traffic", desc: "Set your tool base URL to http://localhost:20128/v1." },
               ].map((step) => (
@@ -50,7 +50,7 @@ export default function GetStarted() {
                 <span>terminal</span>
                 <button
                   type="button"
-                  onClick={() => handleCopy("npx 9router-kiyoshi")}
+                  onClick={() => handleCopy("npx 9router-lith")}
                   className="hover:text-text-main transition-colors cursor-pointer text-[11px]"
                 >
                   {copied === "landing" ? "copied" : "copy"}
@@ -60,11 +60,11 @@ export default function GetStarted() {
               <div className="p-4 sm:p-5 font-mono text-xs leading-relaxed overflow-x-auto text-text-main">
                 <div className="flex items-center gap-2 mb-3">
                   <span className="text-brass-600 dark:text-brass-400 font-bold">$</span>
-                  <span className="font-semibold">npx 9router-kiyoshi</span>
+                  <span className="font-semibold">npx 9router-lith</span>
                 </div>
 
                 <div className="text-text-muted mb-4 space-y-1">
-                  <div>&gt; Starting 9Router-Kiyoshi gateway...</div>
+                  <div>&gt; Starting 9router-lith gateway...</div>
                   <div>&gt; Gateway listening on http://localhost:20128</div>
                   <div>&gt; Dashboard available at http://localhost:20128/dashboard</div>
                   <div className="text-brand-700 dark:text-brand-300 font-medium">&gt; Ready for requests</div>

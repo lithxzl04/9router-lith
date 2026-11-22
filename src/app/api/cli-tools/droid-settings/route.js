@@ -46,10 +46,13 @@ const readSettings = async () => {
   }
 };
 
-// Check if settings has 9Router-Kiyoshi customModels
+const is9RouterDroidModel = (m) =>
+  m?.id?.startsWith("custom:9router-lith") || m?.id?.startsWith("custom:9Router-Kiyoshi");
+
+// Check if settings has 9router-lith customModels
 const has9RouterConfig = (settings) => {
   if (!settings || !settings.customModels) return false;
-  return settings.customModels.some(m => m.id?.startsWith("custom:9Router-Kiyoshi"));
+  return settings.customModels.some(is9RouterDroidModel);
 };
 
 // GET - Check droid CLI and read current settings
@@ -111,8 +114,8 @@ export async function POST(request) {
       settings.customModels = [];
     }
 
-    // Remove all existing 9Router-Kiyoshi configs
-    settings.customModels = settings.customModels.filter(m => !m.id?.startsWith("custom:9Router-Kiyoshi"));
+    // Remove all existing 9router-lith / 9Router-Kiyoshi configs
+    settings.customModels = settings.customModels.filter(m => !is9RouterDroidModel(m));
 
     // Normalize baseUrl to ensure /v1 suffix
     const normalizedBaseUrl = baseUrl.endsWith("/v1") ? baseUrl : `${baseUrl}/v1`;
@@ -137,7 +140,7 @@ export async function POST(request) {
       if (!m || typeof m !== "string") continue;
       settings.customModels.push({
         model: m,
-        id: `custom:9Router-Kiyoshi-${i}`,
+        id: `custom:9router-lith-${i}`,
         index: i,
         baseUrl: normalizedBaseUrl,
         apiKey: keyToUse,
@@ -191,9 +194,9 @@ export async function DELETE() {
       throw error;
     }
 
-    // Remove 9Router-Kiyoshi customModels
+    // Remove 9router-lith customModels
     if (settings.customModels) {
-      settings.customModels = settings.customModels.filter(m => !m.id?.startsWith("custom:9Router-Kiyoshi"));
+      settings.customModels = settings.customModels.filter(m => !is9RouterDroidModel(m));
       
       // Remove customModels array if empty
       if (settings.customModels.length === 0) {
@@ -206,7 +209,7 @@ export async function DELETE() {
 
     return NextResponse.json({
       success: true,
-      message: "9Router-Kiyoshi settings removed successfully",
+      message: "9router-lith settings removed successfully",
     });
   } catch (error) {
     console.log("Error resetting droid settings:", error);

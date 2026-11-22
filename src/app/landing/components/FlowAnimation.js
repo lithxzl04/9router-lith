@@ -28,7 +28,7 @@ export default function FlowAnimation() {
 
   return (
     <div className="w-full max-w-3xl relative h-[300px] hidden md:flex items-center justify-center">
-      {/* 9Router-Kiyoshi Hub - Center */}
+      {/* 9router-lith Hub - Center */}
       <div className="relative z-20 size-28 rounded-full bg-surface border-2 border-brass-500 flex flex-col items-center justify-center gap-1">
         <span className="material-symbols-outlined text-3xl text-brass-600 dark:text-brass-300" aria-hidden="true">
           hub

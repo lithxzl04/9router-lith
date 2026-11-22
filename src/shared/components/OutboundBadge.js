@@ -5,7 +5,7 @@ import { describeOutbound, SETTINGS_CHANGED_EVENT } from "@/shared/lib/outboundM
 
 // Always-visible outbound status: the user should never have to guess what
 // this app sends beyond the core proxying lane. Green "Core-only" = no
-// optional outbound feature is active; amber "N aktif" = expand for the list.
+// optional outbound feature is active; amber "N active" = expand for the list.
 // Data never leaves this component — it only reads local settings.
 export default function OutboundBadge() {
   const [features, setFeatures] = useState(null);
@@ -41,15 +41,15 @@ export default function OutboundBadge() {
             ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-500"
             : "border-amber-500/40 bg-amber-500/10 text-amber-500"
         }`}
-        title="Status outbound — klik untuk rincian"
+        title="Outbound status — click for details"
       >
         <span className="material-symbols-outlined text-[14px]">shield</span>
         <span className="hidden sm:inline">
-          {coreOnly ? "Core-only" : `${active.length} aktif`}
+          {coreOnly ? "Core-only" : `${active.length} active`}
         </span>
       </summary>
       <div className="absolute right-0 z-50 mt-2 w-[min(92vw,420px)] rounded-xl border border-border bg-surface p-3 shadow-xl">
-        <p className="mb-2 text-xs font-semibold text-text-main">Outbound — apa yang keluar dari mesin ini</p>
+        <p className="mb-2 text-xs font-semibold text-text-main">Outbound — what leaves this machine</p>
         <ul className="max-h-72 space-y-1 overflow-auto">
           {features.map((f) => (
             <li key={f.key} className="flex items-start justify-between gap-2 text-[11px]">
@@ -70,8 +70,8 @@ export default function OutboundBadge() {
           ))}
         </ul>
         <p className="mt-2 text-[10px] text-text-muted">
-          Proxying inti (percakapan → provider pilihanmu) selalu jalan dan tidak termasuk daftar ini. Ubah lewat toggle
-          per item di tab Transparency (Developer), atau lewat halaman Settings.
+          Core proxying (chat → your chosen provider) always runs and is not listed here. Toggle individual items
+          in the Transparency tab (Developer), or in Settings.
         </p>
       </div>
     </details>

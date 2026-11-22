@@ -476,12 +476,12 @@ export default function PulseClient() {
               <AreaChart data={latencyChartData} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
                 <defs>
                   <linearGradient id="p50Grad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#4E8059" stopOpacity={0.4} />
-                    <stop offset="95%" stopColor="#4E8059" stopOpacity={0} />
+                    <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.4} />
+                    <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="p95Grad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#C9AC80" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#C9AC80" stopOpacity={0} />
+                    <stop offset="5%" stopColor="#C4B5FD" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#C4B5FD" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <XAxis
@@ -512,14 +512,14 @@ export default function PulseClient() {
                 <Area
                   type="monotone"
                   dataKey="p50"
-                  stroke="#4E8059"
+                  stroke="#8B5CF6"
                   strokeWidth={2}
                   fill="url(#p50Grad)"
                 />
                 <Area
                   type="monotone"
                   dataKey="p95"
-                  stroke="#C9AC80"
+                  stroke="#C4B5FD"
                   strokeWidth={1.5}
                   strokeDasharray="3 3"
                   fill="url(#p95Grad)"

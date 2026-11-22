@@ -1,12 +1,12 @@
-// ── Runtime agent penetration ─────────────────────────────────────────────────
+// ── Penetration agent runtime ─────────────────────────────────────────────────
 //
-// Satu loop agent yang dipakai berulang. Root menurunkan agent kerja lewat
-// spawn_agent; tiap agent punya tool subset dan system prompt sendiri, tapi
-// semuanya berbagi satu sandbox dan satu buku bukti, jadi hasil recon bisa
-// langsung dirujuk agent exploit tanpa disalin manual.
+// Reusable single-agent loop. Root spawns worker agents via spawn_agent; each
+// agent has its own tool subset and system prompt, while sharing a single
+// sandbox and evidence ledger so recon results can be referenced directly by
+// exploit agents without manual copying.
 //
-// ponytail: hanya root boleh menurunkan agent dan jumlahnya dibatasi. Kalau
-// nanti butuh agen tiga tingkat, naikkan MAX_CHILDREN di sini.
+// ponytail: only root may spawn sub-agents and total children are capped.
+// Raise MAX_CHILDREN here if 3-tier hierarchy is needed later.
 
 import { runAgentTool, toolsForRole, WORKER_ROLES } from "@/shared/lib/agentTools.js";
 
@@ -15,32 +15,31 @@ export const WORKER_ROLES_EXPORT = WORKER_ROLES;
 
 const ROLE_BRIEF = {
   root:
-    "agent root yang mengoordinasikan pengujian keamanan. Kamu yang memecah pekerjaan, " +
-    "menurunkan agent speci dengan fokus berbeda, lalu merangkum laporan akhir.",
+    "the root agent coordinating the security assessment. You break down the work, " +
+    "spawn specialist worker agents with distinct objectives, and compile the final report.",
   recon:
-    "agent recon. Fokusmu menemukan surface serangan: port, layanan, versi, endpoint, dan " +
-    "vektor yang mungkin bisa diserang. Jangan mencoba eksploit mendalam di sini.",
+    "the agent recon specialist. Your focus is mapping the attack surface: ports, services, versions, endpoints, and " +
+    "candidate attack vectors. Do not attempt deep exploitation here.",
   exploit:
-    "agent exploit. Fokusmu membuktikan satu vektor dengan bukti yang bisa diaudit, lalu " +
-    "menyerahkan Proof of Concept-nya. Bukti harus nyata dan bisa diulang.",
+    "the agent exploit specialist. Your focus is proving a single vector with auditable evidence and " +
+    "delivering its Proof of Concept. Evidence must be real and reproducible.",
   privesc:
-    "agent privesc. Fokusmu mencari dan membuktikan jalur privilege escalation. Klaim akses " +
-    "root hanya sah bila memang terlihat perintahnya berhasil dijalankan.",
+    "the agent privesc specialist. Your focus is finding and proving privilege escalation paths. Claims of " +
+    "root access are valid only when a command output proves execution as root.",
 };
 
 const ROOT_DELEGATION =
-  "\n\nSebelum turunkan agent, putuskan sendiri: kalau butuh peta permukaan target atau " +
-  "petunjuk awal, pakai recon; kalau sudah punya vektor konkret yang perlu dibuktikan, pakai " +
-  "exploit; kalau menyangkut naiknya hak akses, pakai privesc. Satu agent satu tujuan. " +
-  "Setelah laporannya kembali, tetapkan sendiri agent berikutnya.";
+  "\n\nBefore spawning a sub-agent, decide: if you need an attack-surface map or initial leads, " +
+  "use recon; if you have a concrete vector to prove, use exploit; if it involves elevating privileges, " +
+  "use privesc. One sub-agent, one objective. After its report returns, decide the next step.";
 
 const EVIDENCE_RULE =
-  "\n\nTidak ada temuan tanpa bukti nyata. Kalau tidak bisa membuktikan, itu bukan temuan — " +
-  "cukup sebut sebagai area yang belum terverifikasi.";
+  "\n\nNo finding without real evidence. If you cannot prove it, it is not a finding — " +
+  "list it under unverified areas instead.";
 
-/** System prompt satu role. Sengaja pendek: aturan lengkap ada di tool. */
+/** System prompt for a single role. Kept concise: detailed rules live on the tools. */
 export function systemPrompt(role, { target, scope } = {}) {
-  const parts = [`Kamu ${ROLE_BRIEF[role] || ROLE_BRIEF.recon}.`];
+  const parts = [`You are ${ROLE_BRIEF[role] || ROLE_BRIEF.recon}.`];
   if (target) parts.push(`Target: ${target}`);
   if (scope) parts.push(`Scope: ${scope}`);
   if (role === "root") parts.push(ROOT_DELEGATION);
@@ -48,17 +47,17 @@ export function systemPrompt(role, { target, scope } = {}) {
   return parts.join("\n");
 }
 
-/** State yang dibagi semua agent dalam satu run. */
+/** Shared state across all agents in a single run. */
 export function createRunState() {
   return { evidence: [], failures: [], notes: [], children: [] };
 }
 
 /**
- * Jalankan satu agent sampai selesai.
+ * Run a single agent to completion.
  *
  * @param {object} o
  * @param {string} o.role              root | recon | exploit | privesc
- * @param {string} o.objective         Tujuan agent ini.
+ * @param {string} o.objective         Objective for this agent.
  * @param {(messages, tools) => Promise<{content: string, tool_calls?: object[]}>} o.callModel
  * @param {(event: object) => void} [o.emit]
  * @returns {Promise<{report: object|null, failed: boolean, reason: string}>}
@@ -89,16 +88,16 @@ export async function runAgent({
     spawn: null,
   };
 
-  // Menurunkan agent adalah satu-satunya cara root bekerja. Anaknya menjalankan
-  // loop sendiri dan laporannya balik sebagai hasil tool call.
+  // Spawning sub-agents is how root delegates work. Each child runs its own
+  // loop and returns its report as the tool call result.
   if (role === "root") {
     ctx.spawn = async (rawArgs) => {
       const childRole = String(rawArgs.role || "recon");
       if (!WORKER_ROLES.includes(childRole)) {
-        return `ERROR: role "${childRole}" tidak dikenal. Pilihan: ${WORKER_ROLES.join(", ")}.`;
+        return `ERROR: unknown role "${childRole}". Valid options: ${WORKER_ROLES.join(", ")}.`;
       }
       if (state.children.length >= MAX_CHILDREN) {
-        return `ERROR: batas ${MAX_CHILDREN} agent anak sudah tercapai. Rangkum dengan yang ada.`;
+        return `ERROR: limit of ${MAX_CHILDREN} sub-agents reached. Summarize with current results.`;
       }
 
       const childName = `${childRole}-${state.children.length + 1}`;
@@ -124,15 +123,14 @@ export async function runAgent({
       record.failed = result.failed;
       record.reason = result.reason;
 
-      // Anak yang berhenti karena kehabisan langkah atau error model tidak
-      // sempat memanggil report_failure sendiri. Tanpa baris ini kegagalannya
-      // hilang: root masih melihatnya di teks laporan, tapi tidak masuk daftar
-      // kegagalan — persis yang tidak boleh terjadi.
+      // A child that stopped due to step exhaustion or model error never had
+      // a chance to call report_failure itself. Record the failure in the
+      // ledger so it is not silently lost.
       if (result.failed && state.failures.length === before) {
         state.failures.push({
           agent: childName,
           area: String(rawArgs.objective || childRole).slice(0, 120),
-          reason: String(result.reason || "gagal tanpa alasan"),
+          reason: String(result.reason || "failed without reason"),
         });
       }
 
@@ -144,7 +142,7 @@ export async function runAgent({
   const tools = toolsForRole(role);
   const messages = [
     { role: "system", content: systemPrompt(role, { target, scope }) },
-    { role: "user", content: objective || "Mulai pengujian." },
+    { role: "user", content: objective || "Start the security assessment." },
   ];
 
   let nudged = false;
@@ -169,15 +167,15 @@ export async function runAgent({
 
     const calls = Array.isArray(message?.tool_calls) ? message.tool_calls : [];
     if (!calls.length) {
-      // Model bicara tanpa memakai tool. Ingatkan sekali saja supaya agent
-      // tidak berhenti di tengah tanpa menyerahkan hasil.
+      // Model replied with text only and no tool call. Nudge once so the agent
+      // does not stop mid-run without submitting its report.
       if (nudged) {
-        return { report: ctx.report, failed: true, reason: "model berhenti tanpa finish" };
+        return { report: ctx.report, failed: true, reason: "model stopped without finish" };
       }
       nudged = true;
       messages.push({
         role: "user",
-        content: "Rangkum hasilmu sekarang dengan tool finish, atau lanjutkan dengan tool yang ada.",
+        content: "Summarize your results now using the finish tool, or continue using the available tools.",
       });
       continue;
     }
@@ -191,7 +189,7 @@ export async function runAgent({
       try {
         result = await runAgentTool(fnName, rawArgs, ctx);
       } catch (error) {
-        result = `ERROR: tool gagal — ${textOf(error)}`;
+        result = `ERROR: tool failed — ${textOf(error)}`;
       }
 
       emit({
@@ -212,7 +210,7 @@ export async function runAgent({
   }
 
   if (!ctx.finished) {
-    return { report: ctx.report, failed: true, reason: `batas ${maxSteps} langkah habis` };
+    return { report: ctx.report, failed: true, reason: `step limit of ${maxSteps} exhausted` };
   }
   return { report: ctx.report, failed: false, reason: "finish" };
 }
@@ -221,18 +219,18 @@ function renderChildReport(childName, result) {
   if (result.failed) {
     const failures = result.report?.notTested || [];
     return (
-      `[${childName}] GAGAT: ${result.reason}\n` +
-      (failures.length ? `Belum terverifikasi: ${failures.join("; ")}\n` : "") +
-      "Jangan diperlakukan sebagai temuan."
+      `[${childName}] FAILED: ${result.reason}\n` +
+      (failures.length ? `Not verified: ${failures.join("; ")}\n` : "") +
+      "Do not treat this as a finding."
     );
   }
-  const report = result.report || { summary: "(tanpa laporan)", findings: [] };
-  const lines = [`[${childName}] selesai`, `Ringkasan: ${report.summary || "(kosong)"}`];
+  const report = result.report || { summary: "(no report)", findings: [] };
+  const lines = [`[${childName}] completed`, `Summary: ${report.summary || "(empty)"}`];
   for (const f of report.findings || []) {
-    lines.push(`- ${f.title} (${f.severity}) bukti #${(f.evidenceIds || []).join(", #")}`);
+    lines.push(`- ${f.title} (${f.severity}) evidence #${(f.evidenceIds || []).join(", #")}`);
   }
   if (report.notTested?.length) {
-    lines.push(`Belum terverifikasi: ${report.notTested.join("; ")}`);
+    lines.push(`Not verified: ${report.notTested.join("; ")}`);
   }
   return lines.join("\n");
 }
@@ -244,6 +242,6 @@ function clampSteps(value, fallback, max) {
 }
 
 function textOf(error) {
-  if (!error) return "Gagal tidak diketahui";
+  if (!error) return "Unknown failure";
   return String(error.message || error).trim().slice(0, 500);
 }

@@ -1,15 +1,15 @@
-// ── Tool agent penetration ────────────────────────────────────────────────────
+// ── Penetration agent tools ───────────────────────────────────────────────────
 //
-// Tool untuk agent penetration. Bentuknya OpenAI function-calling supaya
-// langsung lewat /v1/chat/completions milik 9router sendiri — tanpa SDK agent
-// dari luar, tanpa agent lain yang ikut mencampuri hasil pengujian.
+// Tools for the penetration testing agent. Shaped as OpenAI function-calling
+// schemas so they work directly through 9router-lith's own /v1/chat/completions
+// without an external agent SDK interfering with test results.
 //
-// Tiap role dapat_subset berbeda: root bisa menurunkan agent baru lewat
-// spawn_agent, agent pekerja bisa melaporkan kegagalan lewat report_failure.
-// Sisanya sama untuk semua role.
+// Each role receives a distinct tool subset: root can spawn sub-agents via
+// spawn_agent, while worker agents can report blocked areas via report_failure.
+// All other tools are shared across roles.
 //
-// Yang belum ada dari daftar tool Strix (proxy/Caido, agent_browser,
-// agents_graph, threat_model) ada di catatan ponytail di agentRuntime.js.
+// Remaining Strix tool ideas (proxy/Caido, agent_browser, agents_graph,
+// threat_model) are noted in agentRuntime.js.
 
 import { runInSandbox } from "@/shared/lib/pentestSandbox.js";
 import { getStrixPayload, getStrixPayloads } from "open-sse/penetration/strixPayloads.js";
@@ -22,54 +22,54 @@ const MAX_FINDINGS = 100;
 const MAX_FAILURES = 50;
 
 const SHELL_DESCRIPTION =
-  "Jalankan command shell di dalam sandbox Kali. Tersedia nmap, sqlmap, nuclei, subfinder, " +
-  "naabu, ffuf, katana, curl, jq, python3, dan tool dasar Kali. Output kembali apa adanya " +
-  "dan tercatat sebagai bukti bernomor. Backup: /work.";
+  "Execute a shell command inside the Kali sandbox. Includes nmap, sqlmap, nuclei, subfinder, " +
+  "naabu, ffuf, katana, curl, jq, python3, and standard Kali utilities. Output is returned verbatim " +
+  "and recorded as numbered evidence. Workspace: /work.";
 
 const LOAD_SKILL_DESCRIPTION =
-  "Tarik metodologi pengujian lengkap untuk satu kelas kerentanan sebelum mulai bekerja di " +
-  "bidang itu. Panggil saat butuh prosedur, bukan saat sudah tahu caranya.";
+  "Load the complete testing methodology for a vulnerability class before testing that area. " +
+  "Call this when you need a structured procedure rather than guessing.";
 
-const NOTES_DESCRIPTION = "Catat hasil antara, target yang sudah dicek, atau kredensial yang ditemukan.";
+const NOTES_DESCRIPTION = "Record intermediate observations, tested endpoints, or discovered credentials.";
 
 const FINDING_SCHEMA = {
   type: "object",
   properties: {
-    title: { type: "string", description: "Judul singkat kerentanan." },
+    title: { type: "string", description: "Concise vulnerability title." },
     severity: {
       type: "string",
       enum: ["critical", "high", "medium", "low", "info"],
-      description: "Nilai jujur. Menaikkan severity agar terlihat dramatis merusak penilaian keseluruhan.",
+      description: "Honest severity rating. Inflating severity undermines the entire assessment.",
     },
     evidence_ids: {
       type: "array",
       items: { type: "integer" },
       description:
-        "Nomor bukti dari balasan tool shell yang membuktikan temuan ini. Wajib diisi dan " +
-        "nomornya harus benar-benar ada — klaim tanpa bukti nyata akan ditolak.",
+        "Evidence numbers from shell tool outputs that prove this finding. Required and " +
+        "must reference existing evidence IDs — unsubstantiated claims are rejected.",
     },
     evidence_quote: {
       type: "string",
       description:
-        "Potongan teks yang ada persis di salah satu bukti yang kamu kutip. Harus cocok verbatim " +
-        "dengan output shell itu, bukan ringkasanmu.",
+        "Exact substring from one of the cited evidence outputs. Must match the shell output " +
+        "verbatim, not a paraphrase.",
     },
     cvss: {
       type: "string",
-      description: "Skor CVSS v3.1 lengkap, mis. \"CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H\". Kosongkan kalau tidak dihitung.",
+      description: "Full CVSS v3.1 vector, e.g. \"CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H\". Leave empty if not calculated.",
     },
     cve: {
       type: "string",
-      description: "CVE terkait kalau kerentanan ini punya identitas CVE yang sudah dikonfirmasi. Kosongkan kalau tidak.",
+      description: "Associated CVE identifier if confirmed. Leave empty if none.",
     },
-    impact: { type: "string", description: "Apa yang benar-benar bisa dilakukan penyerang karena temuan ini." },
-    remediation: { type: "string", description: "Perbaikan yang nyata dan bisa dikerjakan." },
+    impact: { type: "string", description: "What an attacker can concretely achieve through this finding." },
+    remediation: { type: "string", description: "Actionable remediation steps." },
   },
   required: ["title", "severity", "evidence_ids", "evidence_quote"],
 };
 
 const FINISH_DESCRIPTION =
-  "Tandai pekerjaan agent ini selesai dan serahkan hasilnya ke pemanggil. Panggil sekali saja di akhir.";
+  "Mark this agent's task as complete and submit its report to the caller. Call once at the end.";
 
 function shellTool() {
   return {
@@ -80,10 +80,10 @@ function shellTool() {
       parameters: {
         type: "object",
         properties: {
-          command: { type: "string", description: "Command shell, boleh compound dan pipeline." },
+          command: { type: "string", description: "Shell command (compound commands and pipelines allowed)." },
           timeout_s: {
             type: "integer",
-            description: "Batas waktu detik. Default 120, maks 600. Naikkan untuk scan besar.",
+            description: "Timeout in seconds. Default 120, max 600. Increase for large scans.",
           },
         },
         required: ["command"],
@@ -103,7 +103,7 @@ function loadSkillTool() {
         properties: {
           name: {
             type: "string",
-            description: `Nama skill, mis. "sql_injection", "cvss_scoring". Tersedia: ${STRIX_INDEX}`,
+            description: `Skill name, e.g. "sql_injection", "cvss_scoring". Available: ${STRIX_INDEX}`,
           },
         },
         required: ["name"],
@@ -121,7 +121,7 @@ function notesTool() {
       parameters: {
         type: "object",
         properties: {
-          text: { type: "string", description: "Isi catatan." },
+          text: { type: "string", description: "Note content." },
         },
         required: ["text"],
       },
@@ -131,10 +131,10 @@ function notesTool() {
 
 function finishTool({ hasUntested }) {
   const properties = {
-    summary: { type: "string", description: "Ringkasan eksekutif." },
+    summary: { type: "string", description: "Executive summary." },
     findings: {
       type: "array",
-      description: "Hanya temuan yang buktinya sudah ada di output shell run ini.",
+      description: "Only findings backed by shell output evidence from this run.",
       items: FINDING_SCHEMA,
     },
   };
@@ -144,8 +144,7 @@ function finishTool({ hasUntested }) {
       type: "array",
       items: { type: "string" },
       description:
-        "Area yang tidak sempat diverifikasi, dengan alasannya. Bagian ini yang membuat laporan " +
-        "jujur soal batas pengujian, jadi isi bagian yang memang belum diuji.",
+        "Areas that could not be verified, with reasons. Keeps the report honest about assessment coverage.",
     };
     required.push("not_tested");
   }
@@ -161,14 +160,14 @@ function reportFailureTool() {
     function: {
       name: "report_failure",
       description:
-        "Laporkan bagian yang gagal diuji. Hasilnya masuk ke laporan root sebagai gap yang diketahui, " +
-        "bukanFindings. Panggil begitu kamu yakin tidak bisa melanjutkan di area itu.",
+        "Report an area that could not be tested. Recorded in the root report as a known coverage gap, " +
+        "not a finding. Call as soon as you confirm you cannot proceed in that area.",
       parameters: {
         type: "object",
         properties: {
-          area: { type: "string", description: "Area atau target yang gagal diuji." },
-          reason: { type: "string", description: "Alasan sebenarnya, mis. WAF memblokir atau host mati." },
-          attempts: { type: "string", description: "Sudah coba apa saja sebelum menyerah." },
+          area: { type: "string", description: "Area or target that could not be tested." },
+          reason: { type: "string", description: "Actual reason, e.g. WAF blocking or host unreachable." },
+          attempts: { type: "string", description: "What was attempted before giving up." },
         },
         required: ["area", "reason"],
       },
@@ -182,24 +181,24 @@ function spawnAgentTool(roles) {
     function: {
       name: "spawn_agent",
       description:
-        "Turunkan agent baru dengan fokus khusus, jalankan sampai selesai, dan terima laporannya. " +
-        "Semua agent berbagi sandbox yang sama, jadi hasil dan file dari agent lain tetap terlihat.",
+        "Spawn a new worker agent with a specialized role, run it to completion, and receive its report. " +
+        "All agents share the same sandbox, so files and outputs from other agents remain accessible.",
       parameters: {
         type: "object",
         properties: {
           role: {
             type: "string",
             enum: Object.keys(roles),
-            description: "Fokus kerja agent yang diturunkan.",
+            description: "Specialized role for the spawned worker agent.",
           },
           objective: {
             type: "string",
-            description: "Tujuan tunggal yang harus dicapai agent ini, spesifik dan terukur.",
+            description: "Single specific, measurable objective for this worker agent.",
           },
-          scope: { type: "string", description: "Target atau jalur yang boleh ia explore." },
+          scope: { type: "string", description: "Target or path this worker agent is allowed to explore." },
           max_steps: {
             type: "integer",
-            description: "Batas langkah untuk agent ini. Default 8, maks 20.",
+            description: "Step limit for this worker agent. Default 8, max 20.",
           },
         },
         required: ["role", "objective"],
@@ -209,9 +208,9 @@ function spawnAgentTool(roles) {
 }
 
 /**
- * Tool untuk satu role. Root dapat spawn_agent; agent pekerja dapat
- * report_failure. Keduanya juga bisa mengirim not_tested, karena hanya root
- * yang menyusun laporan akhir.
+ * Tools for a given role. Root gets spawn_agent; worker agents get
+ * report_failure. Only root requires not_tested in finish since root compiles
+ * the final report.
  */
 export function toolsForRole(role) {
   const tools = [shellTool(), loadSkillTool(), notesTool()];
@@ -233,8 +232,8 @@ export const AGENT_TOOL_NAMES = AGENT_TOOLS.map((t) => t.function.name);
 const MAX_NOTES_CHARS = 40_000;
 
 /**
- * Jalankan satu tool call. Selalu mengembalikan string — model hanya boleh
- * melihat teks, jadi bentuk error cukup berupa pesan, bukan objek.
+ * Execute a single tool call. Always returns a string — the model only sees
+ * text, so errors are returned as plain messages rather than thrown objects.
  */
 export async function runAgentTool(name, rawArgs, ctx) {
   const args = safeParse(rawArgs);
@@ -242,18 +241,18 @@ export async function runAgentTool(name, rawArgs, ctx) {
   switch (name) {
     case "shell": {
       const command = String(args.command || "").trim();
-      if (!command) return "ERROR: parameter `command` kosong.";
+      if (!command) return "ERROR: `command` parameter is empty.";
       const timeoutMs = clampTimeout(args.timeout_s);
       const result = await runInSandbox(ctx.sessionId, command, {
         timeout: timeoutMs,
         runtime: ctx.runtime,
       });
       const head = result.ok
-        ? `$ ${command}\n${result.output || "(kosong — command sukses tanpa output)"}`
+        ? `$ ${command}\n${result.output || "(empty — command succeeded with no output)"}`
         : `$ ${command}\nEXIT ${result.exitCode ?? "?"}\n${result.output}`;
 
-      // Bukti bernomor: ini yang membuat klaim palsu tidak mungkin, karena
-      // temuan wajib mengutip nomor yang benar-benar ada di sini.
+      // Numbered evidence: prevents fabricated claims because every finding
+      // must cite an evidence ID recorded here.
       const id = (ctx.evidence?.length || 0) + 1;
       if (ctx.evidence) {
         ctx.evidence.push({
@@ -265,28 +264,28 @@ export async function runAgentTool(name, rawArgs, ctx) {
           ms: result.ms ?? null,
         });
       }
-      return `Bukti #${id}\n${head}`;
+      return `Evidence #${id}\n${head}`;
     }
 
     case "load_skill": {
       const key = normalizeSkillKey(args.name);
       const payload = key ? getStrixPayload(key) : null;
       if (!payload) {
-        return `ERROR: skill "${args.name}" tidak dikenal.\nTersedia: ${STRIX_INDEX}`;
+        return `ERROR: unknown skill "${args.name}".\nAvailable: ${STRIX_INDEX}`;
       }
       return `# ${payload.name} (${payload.cat})\n\n${String(payload.text || "").slice(0, 40_000)}`;
     }
 
     case "notes": {
       const text = String(args.text || "").trim();
-      if (!text) return "ERROR: parameter `text` kosong.";
+      if (!text) return "ERROR: `text` parameter is empty.";
       ctx.notes.push(text);
-      return `Tercatat (${ctx.notes.length} catatan, ${ctx.notes.join("\n").length} karakter total).`;
+      return `Recorded (${ctx.notes.length} notes, ${ctx.notes.join("\n").length} total chars).`;
     }
 
     case "spawn_agent": {
       if (ctx.role !== "root" || typeof ctx.spawn !== "function") {
-        return "ERROR: hanya agent root yang boleh menurunkan agent lain.";
+        return "ERROR: only the root agent can spawn sub-agents.";
       }
       return ctx.spawn(args);
     }
@@ -294,13 +293,13 @@ export async function runAgentTool(name, rawArgs, ctx) {
     case "report_failure": {
       const area = String(args.area || "").trim();
       const reason = String(args.reason || "").trim();
-      if (!area || !reason) return "ERROR: parameter `area` dan `reason` wajib diisi.";
+      if (!area || !reason) return "ERROR: `area` and `reason` parameters are required.";
       ctx.failures.push({
         area,
         reason,
         attempts: String(args.attempts || "").trim(),
       });
-      return "Gagal dilaporkan ke agent root. Lanjut ke area lain.";
+      return "Failure reported to root agent. Proceed to another area.";
     }
 
     case "finish": {
@@ -315,18 +314,18 @@ export async function runAgentTool(name, rawArgs, ctx) {
           ? args.not_tested.map((t) => String(t)).slice(0, MAX_FAILURES)
           : [],
       };
-      return "Hasil diterima. Panggil finish sekali saja lalu berhenti memakai tool.";
+      return "Results accepted. Call finish only once, then stop calling tools.";
     }
 
     default:
-      return `ERROR: tool "${name}" tidak dikenal.`;
+      return `ERROR: unknown tool "${name}".`;
   }
 }
 
 /**
- * Gerbang anti-false-positive. Setiap temuan harus menunjuk bukti yang benar-benar
- * ada di run ini dan mengutipnya persis, sehingga model tidak bisa membuat
- * bukti sendiri. Klaim yang tidak bisa diaudit ditolak, bukan diterima diam-diam.
+ * Anti-false-positive gate. Every finding must cite evidence that actually
+ * exists in this run and quote it verbatim, preventing the model from
+ * hallucinating evidence. Unauditable claims are rejected.
  */
 export function auditFindings(rawFindings, evidence) {
   const list = Array.isArray(rawFindings) ? rawFindings.slice(0, MAX_FINDINGS) : [];
@@ -342,26 +341,26 @@ export function auditFindings(rawFindings, evidence) {
       : [];
 
     if (!title) {
-      return reject(index, "judulnya kosong", evidence);
+      return reject(index, "title is empty", evidence);
     }
     if (!ids.length) {
-      return reject(index, "tidak menyertakan evidence_ids", evidence);
+      return reject(index, "missing evidence_ids", evidence);
     }
 
     const missing = ids.filter((id) => !byId.has(id));
     if (missing.length) {
-      return reject(index, `evidence_ids ${missing.join(", ")} tidak ada di run ini`, evidence);
+      return reject(index, `evidence_ids ${missing.join(", ")} do not exist in this run`, evidence);
     }
 
     const quote = String(raw?.evidence_quote || "");
-    if (!quote) return reject(index, "tidak menyertakan evidence_quote", evidence);
+    if (!quote) return reject(index, "missing evidence_quote", evidence);
 
     const cited = ids.map((id) => byId.get(id));
     const haystack = normalizeForQuote(cited.map((e) => e.output).join("\n"));
     if (!haystack.includes(normalizeForQuote(quote))) {
       return reject(
         index,
-        `evidence_quote tidak cocok persis dengan output bukti ${ids.join(", ")}`,
+        `evidence_quote does not match exact output of evidence ${ids.join(", ")}`,
         evidence
       );
     }
@@ -386,14 +385,14 @@ function reject(index, reason, evidence) {
   return {
     ok: false,
     message:
-      `ERROR: temuan #${index + 1} ditolak — ${reason}.\n` +
-      `Hanya klaim dengan bukti nyata yang diterima. Bukti yang tersedia: ` +
-      `${valid.length ? valid.join(", ") : "(belum ada — jalankan shell dulu)"}.`,
+      `ERROR: finding #${index + 1} rejected — ${reason}.\n` +
+      `Only claims backed by real evidence are accepted. Available evidence: ` +
+      `${valid.length ? valid.join(", ") : "(none yet — run shell first)"}.`,
   };
 }
 
-// Spasi lekukan tidak boleh menentukan lolos-tidaknya kutipan: model sering
-// menyalin output dengan indentasi berbeda.
+// Whitespace/indentation differences should not invalidate a quote: models
+// frequently copy output with normalized spacing.
 function normalizeForQuote(text) {
   return String(text || "").replace(/\s+/g, " ").trim();
 }
@@ -416,9 +415,9 @@ function clampTimeout(value) {
 }
 
 /**
- * Terima "sql_injection", "sql-injection", "vulnerabilities/sql_injection",
- * atau pun id lengkap "strix:vulnerabilities:sql_injection". Model menebak
- * format yang berbeda-beda; jangan biarkan itu menggagalkan pemanggilan.
+ * Accept "sql_injection", "sql-injection", "vulnerabilities/sql_injection",
+ * or the full ID "strix:vulnerabilities:sql_injection". Models guess different
+ * formats; normalize so valid skill names never fail lookup.
  */
 function normalizeSkillKey(name) {
   const raw = String(name || "").trim();
@@ -427,8 +426,8 @@ function normalizeSkillKey(name) {
 
   const slug = raw.toLowerCase().replace(/[\s-]+/g, "_");
 
-  // Bentuk "vulnerabilities/sql_injection" atau "vulnerabilities/sql-injection":
-  // model sering menebak format kategori/nama karena itu yang terlihat di UI.
+  // Format "vulnerabilities/sql_injection" or "vulnerabilities/sql-injection":
+  // models often use category/name because that matches the UI display.
   if (raw.includes("/")) {
     const [cat, ...rest] = raw.split("/");
     const catSlug = cat.trim().toLowerCase();

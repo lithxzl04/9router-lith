@@ -1,21 +1,21 @@
-// P0 GOLDEN: lock buildUrl + buildHeaders cho mọi provider trên code CŨ.
-// Sinh snapshot lần đầu (baseline) → sau refactor chạy lại phải khớp y hệt.
-// Mock proxyFetch + uuid-heavy executors KHÔNG cần ở đây vì chỉ gọi buildUrl/buildHeaders (pure).
+// P0 GOLDEN: lock buildUrl + buildHeaders for every provider on the baseline code.
+// Generates baseline snapshot on first run → must match identically after refactoring.
+// Mocking proxyFetch + uuid-heavy executors is not needed here since only pure buildUrl/buildHeaders are called.
 import { describe, it, expect } from "vitest";
 import { PROVIDERS } from "../../open-sse/config/providers.js";
 import { DefaultExecutor } from "../../open-sse/executors/default.js";
 
-// Credentials mẫu cố định (deterministic) — KHÔNG dùng Date.now/random.
-const API_KEY_CRED = { apiKey: "sk-test-APIKEY", providerSpecificData: {} };
+// Deterministic sample credentials — do NOT use Date.now/random.
+const API_KEY_CRED = { apiKey: "«reda...…»", providerSpecificData: {} };
 const OAUTH_CRED = { accessToken: "tok-test-ACCESS", providerSpecificData: {} };
 const SPECIAL_CRED = {
-  apiKey: "sk-test-APIKEY",
+  apiKey: "«reda...…»",
   accessToken: "tok-test-ACCESS",
   providerSpecificData: { accountId: "ACC123", region: "sgp", baseUrl: "https://custom.example.com/v1", orgId: "ORG9" },
 };
 
-// Provider cần executor riêng (buildUrl/buildHeaders không nằm ở DefaultExecutor) → bỏ qua ở golden này.
-// Chúng được lock riêng ở 11-provider edge tests / unit test chuyên biệt.
+// Providers with dedicated executors (buildUrl/buildHeaders not in DefaultExecutor) → skipped in this golden test.
+// They are locked separately in specialized provider unit tests.
 const SPECIALIZED = new Set([
   "antigravity", "azure", "gemini-cli", "github", "iflow", "qoder", "kiro",
   "codex", "cursor", "vertex", "vertex-partner", "opencode",
@@ -32,7 +32,7 @@ const VOLATILE_HEADERS = new Set(["x-msh-device-name", "x-mavis-session-id"]);
 // of the header name, so new UUID-bearing headers are covered automatically.
 const UUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
 
-// Sanitize header: khử token + field thời gian động (kimi X-Msh-Device-Id) để snapshot ổn định.
+// Sanitize headers: redact tokens and dynamic timestamp fields (kimi X-Msh-Device-Id) for stable snapshots.
 function sanitize(headers) {
   const out = {};
   for (const [k, v] of Object.entries(headers)) {

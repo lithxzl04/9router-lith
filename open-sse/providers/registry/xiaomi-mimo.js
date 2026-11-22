@@ -33,11 +33,11 @@ export default {
   // Keys are cluster-specific. MiMo Desktop declares five regions
   // (CN/SGP/AMS/RU/IN) — host + sid follow mimo-server-<code> / mimo<code>.
   regions: [
-    { id: "cn", label: "China (中国大陆)" },
-    { id: "sgp", label: "Singapore (新加坡)" },
-    { id: "ams", label: "Europe · Amsterdam (欧洲)" },
-    { id: "ru", label: "Russia (俄罗斯)" },
-    { id: "in", label: "India (印度)" },
+    { id: "cn", label: "China (Mainland)" },
+    { id: "sgp", label: "Singapore" },
+    { id: "ams", label: "Europe · Amsterdam" },
+    { id: "ru", label: "Russia" },
+    { id: "in", label: "India" },
   ],
   defaultRegion: "sgp",
   serviceKinds: ["llm", "tts"],

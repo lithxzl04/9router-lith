@@ -1,16 +1,16 @@
-# 9router-plinian — fork/patch build & install helper.
+# 9router-lith — fork/patch build & install helper.
 #
-# This repo is a PATCH/FORK of upstream 9router. To ship changes into the
+# This repo is a PATCH/FORK of 9router-kiyoshi / upstream 9router. To ship changes into the
 # running tray app, the package must be rebuilt, packed, and installed into
 # the exact global prefix the tray loads from (the nvm node, NOT the default
-# ~/.local that a plain `npm i -g` uses). `make 9router-plinian` does all of
+# ~/.local that a plain `npm i -g` uses). `make 9router-lith` does all of
 # that in one step so a new user never has to know the prefix trick.
 #
 # Usage:
-#   make                 # show help
-#   make 9router-plinian # build + pack + install, then relaunch the tray
+#   make              # show help
+#   make 9router-lith # build + pack + install, then relaunch the tray
 
-# Where the tray actually loads 9router-plinian from.
+# Where the tray actually loads 9router-lith from.
 # 1. Follow TRAY_BIN symlink (the original mechanism).
 # 2. If TRAY_BIN is not a symlink to the package cli.js (e.g. an npm shim from a
 #    plain `npm i -g` overwrote it), fall back to searching nvm for the installed
@@ -23,25 +23,25 @@ TRAY_BIN ?= $(HOME)/.local/bin/9router
 # own error text — so INSTALL_PREFIX silently became garbage and
 # `npm install -g --prefix "<garbage>"` failed. Same logic, expressed with
 # if/then/fi so every paren stays balanced.
-INSTALL_PREFIX := $(shell p=$$(readlink -f $(TRAY_BIN) 2>/dev/null); if echo "$$p" | grep -q '/lib/node_modules/9router-plinian/cli.js$$'; then echo "$$p" | sed -E 's#/lib/node_modules/9router-plinian/cli\.js$$##'; else found=$$(find $(HOME)/.nvm/versions/node -maxdepth 5 -path '*/node_modules/9router-plinian/package.json' -print -quit 2>/dev/null); if [ -n "$$found" ]; then dirname $$(dirname $$(dirname $$(dirname "$$found"))); else node -p "require('path').dirname(require('path').dirname(process.execPath))"; fi; fi)
+INSTALL_PREFIX := $(shell p=$$(readlink -f $(TRAY_BIN) 2>/dev/null); if echo "$$p" | grep -q '/lib/node_modules/9router-lith/cli.js$$'; then echo "$$p" | sed -E 's#/lib/node_modules/9router-lith/cli\.js$$##'; else found=$$(find $(HOME)/.nvm/versions/node -maxdepth 5 -path '*/node_modules/9router-lith/package.json' -print -quit 2>/dev/null); if [ -n "$$found" ]; then dirname $$(dirname $$(dirname $$(dirname "$$found"))); else node -p "require('path').dirname(require('path').dirname(process.execPath))"; fi; fi)
 
 VERSION := $(shell node -p "require('./package.json').version")
 # cli/pack:cli runs `npm pack --pack-destination ..` with cwd=cli/, so the
 # tarball lands in THIS directory, not its parent. install was pointing one
 # level too high and failed with ENOENT on a non-existent path.
-TGZ := ./9router-plinian-$(VERSION).tgz
+TGZ := ./9router-lith-$(VERSION).tgz
 
-.PHONY: help build pack install 9router-plinian
+.PHONY: help build pack install 9router-lith 9router-kiyoshi 9router-plinian
 
 help:
-	@echo "9router-plinian (fork of 9router) — build & install"
+	@echo "9router-lith (fork of 9router-kiyoshi) — build & install"
 	@echo ""
-	@echo "  make 9router-plinian   Build the app, pack a .tgz, and install it"
+	@echo "  make 9router-lith      Build the app, pack a .tgz, and install it"
 	@echo "                        into the global prefix the tray uses."
 	@echo "                        Then relaunch the tray to see changes."
 	@echo ""
 	@echo "  make build            Next build only (compile src/)"
-	@echo "  make pack             build + npm pack -> ../9router-plinian-$(VERSION).tgz"
+	@echo "  make pack             build + npm pack -> ./9router-lith-$(VERSION).tgz"
 	@echo "  make install          pack + npm install -g (to tray prefix)"
 	@echo ""
 	@echo "Install prefix (auto): $(INSTALL_PREFIX)"
@@ -55,7 +55,10 @@ pack: build
 install: pack
 	npm install -g --prefix "$(INSTALL_PREFIX)" --force "$(TGZ)"
 
-9router-plinian: install
+9router-lith: install
 	@echo ""
-	@echo "✔ 9router-plinian $(VERSION) ter-install ke: $(INSTALL_PREFIX)"
-	@echo "  Sekarang relaunch tray (kill dari tray, lalu jalankan 9router) untuk memuat app baru."
+	@echo "✔ 9router-lith $(VERSION) installed to: $(INSTALL_PREFIX)"
+	@echo "  Now relaunch the tray (quit from tray, then run 9router-lith) to load the updated app."
+
+9router-kiyoshi: 9router-lith
+9router-plinian: 9router-lith

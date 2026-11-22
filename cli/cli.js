@@ -106,8 +106,8 @@ try { ensureTrayRuntime({ silent: true }); } catch {}
 const APP_NAME = pkg.name; // Use from package.json
 // GitHub is the update source of truth (npm registry is deprecated / dual-use-blocked).
 // Check/update flows hit the GitHub releases API + latest tarball, never registry.npmjs.org.
-const GH_UPDATE_REPO = process.env.NINEROUTER_GH_REPO || "Azhar457/9router";
-const GH_UPDATE_TARBALL = process.env.NINEROUTER_GH_TARBALL || "9router-plinian-latest.tgz";
+const GH_UPDATE_REPO = process.env.NINEROUTER_GH_REPO || "rifqi1146/9router-kiyoshi";
+const GH_UPDATE_TARBALL = process.env.NINEROUTER_GH_TARBALL || "9router-lith-latest.tgz";
 const GH_UPDATE_URL = `https://github.com/${GH_UPDATE_REPO}/releases/latest/download/${GH_UPDATE_TARBALL}`;
 const INSTALL_CMD_LATEST = `curl -fsSL ${GH_UPDATE_URL} -o /tmp/${APP_NAME}.tgz && npm i -g /tmp/${APP_NAME}.tgz`;
 
@@ -119,7 +119,7 @@ const STRIX_BETA_WARNING =
   "\x1b[33m⚠ Beta: v0.6.0 carries the Strix security-payload skill router (in testing — " +
   "may be less stable than the 0.5.99 stable line).\x1b[0m" +
   "\n  If you prefer the proven stable build, pin the update:\n" +
-  "   curl -fsSL https://github.com/Azhar457/9router/releases/download/v0.5.99/9router-kiyoshi-0.5.99.tgz -o /tmp/9router-kiyoshi.tgz && npm i -g /tmp/9router-kiyoshi.tgz\n";
+  "   curl -fsSL https://github.com/rifqi1146/9router-kiyoshi/releases/download/v0.5.99/9router-lith-0.5.99.tgz -o /tmp/9router-lith.tgz && npm i -g /tmp/9router-lith.tgz\n";
 
 const DEFAULT_PORT = 20128;
 const DEFAULT_HOST = "0.0.0.0";
@@ -506,7 +506,8 @@ function isRestrictedEnvironment() {
 // Check if new version available, return latest version or null
 function checkForUpdate() {
   return new Promise((resolve) => {
-    if (skipUpdate) {
+    // ponytail: disable upstream update polling unless NINEROUTER_GH_REPO is explicitly set
+    if (skipUpdate || !process.env.NINEROUTER_GH_REPO) {
       resolve(null);
       return;
     }
@@ -803,7 +804,7 @@ function startServer(updatePromise) {
     if (latestVersion) {
       try {
         const { sendToastNotification } = require("./src/cli/tray/tray");
-        sendToastNotification("9Router-Kiyoshi Update", `New version v${latestVersion} is available! Select Update from menu.`);
+        sendToastNotification("9router-lith Update", `New version v${latestVersion} is available! Select Update from menu.`);
       } catch {}
     }
     try {
@@ -813,7 +814,7 @@ function startServer(updatePromise) {
         if (choice === "headless") {
           console.log(`\n💡 No interactive terminal detected — running headless.`);
           console.log(`   Dashboard: http://${displayHost}:${port}/dashboard`);
-          console.log(`   Stop with: pkill -f 9router-kiyoshi\n`);
+          console.log(`   Stop with: pkill -f 9router-lith\n`);
           return;
         }
 
@@ -859,7 +860,7 @@ function startServer(updatePromise) {
             process.on("SIGHUP", () => {});
 
             console.log(`\n⏳ Switching to tray mode... (icon already visible in menu bar)`);
-            console.log(`🔔 9Router-Kiyoshi is running in tray (PID: ${process.pid})`);
+            console.log(`🔔 9router-lith is running in tray (PID: ${process.pid})`);
             console.log(`   Server: http://${displayHost}:${port}`);
             console.log(`\n💡 You can close this terminal. Right-click tray icon to quit.\n`);
 
@@ -888,7 +889,7 @@ function startServer(updatePromise) {
             try { fs.closeSync(trayLogFd); } catch (e) { }
           }
 
-          console.log(`🔔 9Router-Kiyoshi is now running in background (PID: ${bgProcess.pid})`);
+          console.log(`🔔 9router-lith is now running in background (PID: ${bgProcess.pid})`);
           console.log(`   Server: http://${displayHost}:${port}`);
           console.log(`\n💡 You can close this terminal. Right-click tray icon to quit.\n`);
 

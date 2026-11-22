@@ -2,24 +2,24 @@ import pkg from "../../../package.json" with { type: "json" };
 
 // App configuration
 export const APP_CONFIG = {
-  name: "9Router-Kiyoshi",
-  description: "AI routing gateway — private bench build (based on 9Router-Plinian)",
+  name: "9router-lith",
+  description: "AI routing gateway — customized purple edition (based on 9Router-Kiyoshi)",
   version: pkg.version,
   // Attribution shown in the sidebar footer.
   basedOn: {
-    label: "Based on 9Router-Plinian",
-    url: "https://github.com/Azhar457/9router",
+    label: "Based on 9Router-Kiyoshi",
+    url: "https://github.com/rifqi1146/9router-kiyoshi",
   },
 };
 
 // GitHub configuration
 export const GITHUB_CONFIG = {
-  changelogUrl: "https://github.com/Azhar457/9router/releases",
+  changelogUrl: "https://github.com/rifqi1146/9router-kiyoshi/releases",
   donateUrl: "https://9router.com/api/donate",
 };
 
 // Updater configuration
-const GH_LATEST_URL = `https://github.com/Azhar457/9router/releases/latest/download/9router-plinian-latest.tgz`;
+const GH_LATEST_URL = `https://github.com/rifqi1146/9router-kiyoshi/releases/latest/download/9router-lith-latest.tgz`;
 
 // Per-OS install command templates.
 // - bash / sh: single line with &&
@@ -27,25 +27,26 @@ const GH_LATEST_URL = `https://github.com/Azhar457/9router/releases/latest/downl
 // - pwsh: native PowerShell one-liner (curl.exe + ; separators)
 // - posix path via $TMPDIR so macOS + Linux both work
 export const UPDATER_CONFIG = {
-  npmPackageName: "9router-kiyoshi",
+  disabled: true,
+  npmPackageName: "9router-lith",
   // GitHub is the update source of truth (npm is deprecated / dual-use-blocked).
   // The updater downloads this tarball and runs `npm i -g <file>`.
-  ghRepo: "Azhar457/9router",
-  ghAsset: "9router-plinian-latest.tgz",
+  ghRepo: "rifqi1146/9router-kiyoshi",
+  ghAsset: "9router-lith-latest.tgz",
   ghUrl: GH_LATEST_URL,
   // Backwards-compat default (bash). Kept as-is so existing consumers don't
   // break; Sidebar now picks the OS-specific one via `installCmdForPlatform`.
-  installCmd: `curl -fsSL ${GH_LATEST_URL} -o /tmp/9router-kiyoshi.tgz && npm i -g /tmp/9router-kiyoshi.tgz`,
-  installCmdLatest: `curl -fsSL ${GH_LATEST_URL} -o /tmp/9router-kiyoshi.tgz && npm i -g /tmp/9router-kiyoshi.tgz`,
+  installCmd: `curl -fsSL ${GH_LATEST_URL} -o /tmp/9router-lith.tgz && npm i -g /tmp/9router-lith.tgz`,
+  installCmdLatest: `curl -fsSL ${GH_LATEST_URL} -o /tmp/9router-lith.tgz && npm i -g /tmp/9router-lith.tgz`,
   // Command templates per platform. Each returns a string the user can
   // copy+paste into the matching shell and it will work.
   installCmdByPlatform: {
     // bash / zsh / sh (macOS Terminal, Ubuntu, etc)
-    bash: `curl -fsSL ${GH_LATEST_URL} -o /tmp/9router-kiyoshi.tgz && npm i -g /tmp/9router-kiyoshi.tgz`,
+    bash: `curl -fsSL ${GH_LATEST_URL} -o /tmp/9router-lith.tgz && npm i -g /tmp/9router-lith.tgz`,
     // cmd.exe (Windows) — powershell one-liner, no &&, no /tmp
-    cmd: `powershell -NoProfile -Command "curl.exe -fsSL ${GH_LATEST_URL} -o $env:TEMP\\9router-kiyoshi.tgz; npm i -g $env:TEMP\\9router-kiyoshi.tgz"`,
+    cmd: `powershell -NoProfile -Command "curl.exe -fsSL ${GH_LATEST_URL} -o $env:TEMP\\9router-lith.tgz; npm i -g $env:TEMP\\9router-lith.tgz"`,
     // PowerShell (Windows) — native, no shell escaping
-    pwsh: `curl.exe -fsSL ${GH_LATEST_URL} -o $env:TEMP\\9router-kiyoshi.tgz; npm i -g $env:TEMP\\9router-kiyoshi.tgz`,
+    pwsh: `curl.exe -fsSL ${GH_LATEST_URL} -o $env:TEMP\\9router-lith.tgz; npm i -g $env:TEMP\\9router-lith.tgz`,
   },
   // Pick the right command for the current OS. In the browser `navigator.platform`
   // / `userAgent` is available; on Node we fall back to `process.platform`.

@@ -2,10 +2,9 @@ import { describe, expect, it } from "vitest";
 import { AGENT_TOOLS, AGENT_TOOL_NAMES, runAgentTool } from "../../src/shared/lib/agentTools.js";
 import { runInSandbox, stopSandbox } from "../../src/shared/lib/pentestSandbox.js";
 
-// Agent penetration milik 9router: tool-calling loop + sandbox podman.
-// Yang diuji di sini adalah properti yang diam-diam bisa rusak dan tidak
-// akan ketahuan dari UI: dispatch argumen dari model, terminasi yang rapi,
-// dan timeout yang benar-benar mengikat.
+// 9router-lith penetration agent: tool-calling loop + podman sandbox.
+// Tests properties that could silently break without surfacing in the UI:
+// argument dispatch from the model, clean termination, and enforced timeouts.
 
 function freshCtx(overrides = {}) {
   return {
@@ -52,9 +51,9 @@ describe("runAgentTool dispatch", () => {
 
   it("records notes and reports the running total", async () => {
     const ctx = freshCtx();
-    await runAgentTool("notes", { text: "port 22 terbuka" }, ctx);
+    await runAgentTool("notes", { text: "port 22 open" }, ctx);
     await runAgentTool("notes", { text: "sqlmap: injectable" }, ctx);
-    expect(ctx.notes).toEqual(["port 22 terbuka", "sqlmap: injectable"]);
+    expect(ctx.notes).toEqual(["port 22 open", "sqlmap: injectable"]);
   });
 
   it("captures the report and ends the run when finish is called", async () => {
@@ -62,7 +61,7 @@ describe("runAgentTool dispatch", () => {
       evidence: [{ id: 1, command: "curl -i http://t/", output: "HTTP/1.1 200 OK\nSQL syntax error" }],
     });
     await runAgentTool("finish", {
-      summary: "1 temuan high",
+      summary: "1 high finding",
       findings: [
         {
           title: "SQLi",
@@ -74,7 +73,7 @@ describe("runAgentTool dispatch", () => {
       not_tested: [],
     }, ctx);
     expect(ctx.finished).toBe(true);
-    expect(ctx.report.summary).toBe("1 temuan high");
+    expect(ctx.report.summary).toBe("1 high finding");
     expect(ctx.report.findings).toHaveLength(1);
   });
 
@@ -91,7 +90,7 @@ describe("runAgentTool dispatch", () => {
 
   it("rejects an unknown tool by name rather than crashing", async () => {
     const out = await runAgentTool("rm_rf", {}, freshCtx());
-    expect(out).toContain("tidak dikenal");
+    expect(out).toContain("unknown tool");
   });
 });
 
@@ -99,19 +98,19 @@ describe("load_skill", () => {
   it("resolves loose spellings the model is likely to produce", async () => {
     for (const name of ["sql_injection", "sql-injection", "SQL Injection", "vulnerabilities/sql_injection"]) {
       const out = await runAgentTool("load_skill", { name }, freshCtx());
-      expect(out, `gagal untuk: ${name}`).not.toContain("tidak dikenal");
+      expect(out, `failed for: ${name}`).not.toContain("unknown skill");
       expect(out.length).toBeGreaterThan(200);
     }
   });
 
   it("lists the available catalog when the name is unknown", async () => {
     const out = await runAgentTool("load_skill", { name: "definitely_not_a_skill" }, freshCtx());
-    expect(out).toContain("tidak dikenal");
-    expect(out).toContain("Tersedia:");
+    expect(out).toContain("unknown skill");
+    expect(out).toContain("Available:");
   });
 });
 
-// ── Sandbox: butuh image 9router-pentest. Lewati kalau belum di-build. ──
+// ── Sandbox: requires 9router-pentest image. Skip if not built yet. ──
 const image = process.env.PENTEST_IMAGE || "docker.io/local/9router-pentest:latest";
 async function imagePresent() {
   const { execFile } = await import("node:child_process");
@@ -128,23 +127,22 @@ const hasImage = await imagePresent();
 const maybe = hasImage ? describe : describe.skip;
 
 if (!hasImage) {
-  console.warn(`[pentest-agent] image ${image} belum ada — test sandbox dilewati`);
+  console.warn(`[pentest-agent] image ${image} not built — skipping sandbox tests`);
 }
 
 maybe("sandbox", () => {
   it("runs a command as a non-root user and captures stdout", async () => {
     const ctx = freshCtx();
     try {
-      const result = await runInSandbox(ctx.sessionId, "echo halo && whoami");
+      const result = await runInSandbox(ctx.sessionId, "echo hello && whoami");
       expect(result.ok).toBe(true);
-      expect(result.output).toContain("halo");
+      expect(result.output).toContain("hello");
       expect(result.output).toContain("pentester");
       expect(result.output).not.toContain("root");
     } finally {
       await stopSandbox(ctx.sessionId);
     }
-    // Container pertama harus dibuat dari nol — creation + boot Kali butuh
-    // beberapa detik, jauh lewat default timeout vitest 5s.
+    // First container creation + Kali boot takes several seconds, exceeding Vitest's 5s default.
   }, 45_000);
 
   it("enforces the timeout instead of waiting for the command to finish", async () => {
@@ -175,13 +173,11 @@ maybe("sandbox", () => {
   it("truncates runaway output so one command cannot blow up the context", async () => {
     const ctx = freshCtx();
     try {
-      // seq 1 30000 ≈ 150KB — besar dan pasti, tidak bergantung pada seberapa
-      // cepat podman relay output (percobaan pertama pakai `yes`, yang
-      // kadang berhenti di ~57KB sehingga batas tidak pernah tersentuh).
+      // seq 1 30000 ≈ 150KB — deterministic and independent of podman relay speed.
       const result = await runInSandbox(ctx.sessionId, "seq 1 30000", { timeout: 10_000 });
       expect(result.output.length).toBeLessThanOrEqual(60_000);
-      // Tanpa marker ini model mengira outputnya memang segitu, bukan terpotong.
-      expect(result.output).toContain("dipotong");
+      // Without this marker the model assumes the output was complete rather than truncated.
+      expect(result.output).toContain("truncated");
     } finally {
       await stopSandbox(ctx.sessionId);
     }

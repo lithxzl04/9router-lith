@@ -24,21 +24,20 @@ async function ensureInitialized() {
 /**
  * POST /api/developer/penetration/agent
  *
- * Agent penetration milik 9router sendiri. Root menurunkan agent kerja
- * (recon, exploit, privesc) lewat tool spawn_agent; semuanya berbagi satu
- * sandbox container dan satu buku bukti, nol agent luar yang ikut campur —
- * itulah yang bikin pengujian blackbox-nya bisa dipercaya.
+ * 9router-lith's built-in penetration testing agent. Root spawns worker agents
+ * (recon, exploit, privesc) via the spawn_agent tool; all agents share a single
+ * sandbox container and a single evidence ledger with zero external agent
+ * interference — keeping blackbox testing reproducible and auditable.
  *
- * Yang dipakai loop ini:
- *   - handleChat internal (router milik kita sendiri, bukan HTTP ke diri sendiri)
- *   - header x-9router-inject: off secara default supaya pengukuran tidak
- *     tercemar prompt global. Body inject mengaktifkannya kembali untuk run
- *     yang memang sengaja menguji injection stack.
- *   - session id baru per run, sama seperti A/B di Developer tab: kalau id
- *     ikut koneksi yang stabil, model memutar ulang turn sebelumnya dan
- *     hasil run kedua membawa prompt run pertama.
+ * Loop mechanics:
+ *   - Internal handleChat (our own router directly, no loopback HTTP)
+ *   - Header x-9router-inject: off by default so measurements are not
+ *     contaminated by global steering prompts. Body `inject` re-enables it for
+ *     runs explicitly testing the injection stack.
+ *   - Fresh session ID per run, matching A/B in the Developer tab: reusing a
+ *     sticky connection ID would replay prior turns into subsequent runs.
  *
- * Balasan: SSE dengan bentuk { type: start|text|tool_start|tool_end|agent_*|done|error }.
+ * Response: SSE stream with events `{ type: start|text|tool_start|tool_end|agent_*|done|error }`.
  */
 export async function POST(request) {
   if (!(await assertPenetrationAuth(request))) {
@@ -64,14 +63,14 @@ export async function POST(request) {
     HARD_MAX_STEPS
   );
 
-  if (!target) return Response.json({ error: "Target wajib diisi" }, { status: 400 });
-  if (!model) return Response.json({ error: "Model wajib dipilih" }, { status: 400 });
+  if (!target) return Response.json({ error: "Target is required" }, { status: 400 });
+  if (!model) return Response.json({ error: "Model is required" }, { status: 400 });
 
   const keys = await getApiKeys().catch(() => []);
   const activeKey = Array.isArray(keys) ? keys.find((k) => k?.isActive && k.key) : null;
   if (!activeKey) {
     return Response.json(
-      { error: "Tidak ada API key aktif — buat di Endpoint settings dulu" },
+      { error: "No active API key — create one in Endpoint settings first" },
       { status: 503 }
     );
   }
@@ -85,7 +84,7 @@ export async function POST(request) {
         try {
           controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
         } catch {
-          /* client sudah disconnect */
+          /* client already disconnected */
         }
       };
 
@@ -94,9 +93,9 @@ export async function POST(request) {
 
         const objective = [
           `Target: ${target}`,
-          scope ? `Scope: ${scope}` : "Scope: hanya yang tercantum di target.",
-          instructions ? `\nInstruksi tambahan:\n${instructions}` : "",
-          "\nLakukan pengujian keamanan blackbox terhadap target. Pakai tool, jangan menebak.",
+          scope ? `Scope: ${scope}` : "Scope: only what is specified in target.",
+          instructions ? `\nAdditional instructions:\n${instructions}` : "",
+          "\nPerform blackbox security testing against the target. Use tools, do not guess.",
         ].join("\n");
 
         const state = createRunState();
@@ -129,13 +128,13 @@ export async function POST(request) {
       } catch (error) {
         send({ type: "error", message: String(error?.message || error) });
       } finally {
-        // Sapu containernya supaya tidak ada proses container yang nyangkut
-        // setelah run selesai. Kegagalan di sini tidak boleh menutup stream.
+        // Clean up the container so no sandbox process lingers after the run finishes.
+        // Cleanup errors must not break stream closure.
         await stopSandbox(sessionId).catch(() => {});
         try {
           controller.close();
         } catch {
-          /* sudah tertutup */
+          /* already closed */
         }
       }
     },
@@ -152,9 +151,9 @@ export async function POST(request) {
 }
 
 /**
- * Satu putaran model. Non-streaming supaya tool_calls datang sebagai array
- * utuh — parsing delta tool_call per index jauh lebih rapuh, dan yang kita
- * tampilkan ke user adalah progres per tool, bukan token per token.
+ * Single model turn. Non-streaming so tool_calls arrive as a complete array —
+ * parsing incremental tool_call deltas by index is brittle, and the UI displays
+ * progress per tool rather than token-by-token.
  */
 async function callModel(request, { model, messages, tools, activeKey, sessionId, useInjection }) {
   const headers = new Headers();
@@ -180,18 +179,18 @@ async function callModel(request, { model, messages, tools, activeKey, sessionId
   const response = await handleChat(forwarded);
   if (!response || !response.ok) {
     const detail = await response?.text?.().catch(() => "");
-    const message = `Model gagal: ${response?.status || "tidak diketahui"} ${detail || ""}`.trim();
+    const message = `Model failed: ${response?.status || "unknown"} ${detail || ""}`.trim();
     throw new Error(message);
   }
 
   const contentType = response.headers.get("content-type") || "";
   const raw = await response.text();
 
-  // Executor sebagian tetap mengembalikan SSE walau stream:false. Ambil objek
-  // message dari chunk data terakhir yang punya choices, bukan andalkan JSON.
+  // Some executors still return SSE even when stream:false. Extract the
+  // message object from the last data chunk containing choices.
   if (contentType.includes("text/event-stream")) {
     const message = lastMessageFromSse(raw);
-    if (!message) throw new Error("Respons model tidak bisa dibaca");
+    if (!message) throw new Error("Could not parse model response");
     return message;
   }
 
@@ -199,13 +198,13 @@ async function callModel(request, { model, messages, tools, activeKey, sessionId
   try {
     parsed = JSON.parse(raw);
   } catch {
-    throw new Error("Respons model bukan JSON yang valid");
+    throw new Error("Model response is not valid JSON");
   }
   if (parsed?.error) {
     throw new Error(parsed.error?.message || String(parsed.error));
   }
   const message = parsed?.choices?.[0]?.message;
-  if (!message) throw new Error("Respons model tidak punya message");
+  if (!message) throw new Error("Model response did not contain a message");
   return message;
 }
 
@@ -220,7 +219,7 @@ function lastMessageFromSse(raw) {
       const candidate = chunk?.choices?.[0]?.message;
       if (candidate && (candidate.tool_calls?.length || candidate.content)) message = candidate;
     } catch {
-      /* chunk bukan JSON — abaikan */
+      /* non-JSON chunk — ignore */
     }
   }
   return message;

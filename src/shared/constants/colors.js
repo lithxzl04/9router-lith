@@ -1,62 +1,62 @@
-// Kiyoshi palette for 9router-kiyoshi (Paper / Charcoal / AMOLED)
+// Purple palette for 9router-lith (Paper / Charcoal / AMOLED)
 // Mirror of src/app/globals.css tokens for runtime JS consumers.
 
 export const COLORS = {
-  // Primary — Forest Green
+  // Primary — Royal / Amethyst Purple
   primary: {
-    DEFAULT: "#203A2B",
-    hover: "#2B4937",
-    dark: "#4A6547",
-    darkHover: "#5A7F55",
-    amoled: "#3F6B4A",
+    DEFAULT: "#461E9E",
+    hover: "#5829BE",
+    dark: "#7C3AED",
+    darkHover: "#8B5CF6",
+    amoled: "#6D28D9",
   },
 
   brass: {
-    DEFAULT: "#8B6A3F",
-    light: "#C0A175",
-    dark: "#C0A175",
-    amoled: "#C9AC80",
+    DEFAULT: "#7C5CE6",
+    light: "#B7A4F8",
+    dark: "#A78BFA",
+    amoled: "#C4B5FD",
   },
 
   // Paper (Light) theme
   light: {
-    bg: "#F6F4EE",
-    bgAlt: "#F0EEE7",
+    bg: "#F7F5FC",
+    bgAlt: "#F0ECF9",
     surface: "#FFFFFF",
-    sidebar: "#F6F4EE",
-    border: "#DED8CC",
-    textMain: "#242722",
-    textMuted: "#686B64",
+    sidebar: "#F7F5FC",
+    border: "#DCD5EC",
+    textMain: "#1E1A2B",
+    textMuted: "#635C78",
   },
 
   // Charcoal (Dark) theme
   dark: {
-    bg: "#131513",
-    bgAlt: "#191C19",
-    surface: "#191C19",
-    sidebar: "#131513",
-    border: "#2E332E",
-    textMain: "#E8E6DF",
-    textMuted: "#9A9C93",
+    bg: "#121018",
+    bgAlt: "#181520",
+    surface: "#181520",
+    sidebar: "#121018",
+    border: "#2D283E",
+    textMain: "#EAE6F5",
+    textMuted: "#9B93B3",
   },
 
   // AMOLED True Black theme
   amoled: {
     bg: "#000000",
-    bgAlt: "#050505",
-    surface: "#0A0A0A",
+    bgAlt: "#06050A",
+    surface: "#0B0912",
     sidebar: "#000000",
-    border: "#1F1F1F",
-    textMain: "#F2F1EC",
-    textMuted: "#9C9E97",
+    border: "#211C30",
+    textMain: "#F3F0FA",
+    textMuted: "#9E96B8",
   },
 
   // Status colors — solid & quiet
   status: {
-    success: "#2E5D3A",
-    warning: "#8B6A3F",
-    error: "#B8442A",
-    info: "#4A6547",
+    success: "#2E6F4E",
+    warning: "#B4691E",
+    error: "#B83A3A",
+    info: "#6D3CD9",
   },
 };
 

@@ -1,8 +1,9 @@
 {
-  "name": "9router-kiyoshi",
+  "name": "9router-lith",
   "version": "0.6.7",
-  "description": "9Router-Kiyoshi CLI - AI routing gateway (based on 9Router-Plinian 0.6.7)",
+  "description": "9router-lith CLI - AI routing gateway (based on 9Router-Kiyoshi 0.6.7)",
   "bin": {
+    "9router-lith": "cli.js",
     "9router-kiyoshi": "cli.js",
     "9router-plinian": "cli.js"
   },
@@ -48,6 +49,7 @@
     "proxy",
     "ai",
     "api",
+    "9router-lith",
     "9router-kiyoshi"
   ],
   "license": "MIT",

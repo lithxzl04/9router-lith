@@ -60,7 +60,7 @@ console.log(text);
 
 Default (`response_format=json`):
 ```json
-{ "text": "Xin chào, đây là bản ghi âm." }
+{ "text": "Hello, this is an audio recording." }
 ```
 
 `verbose_json` adds `language`, `duration`, `segments[]` with timestamps.

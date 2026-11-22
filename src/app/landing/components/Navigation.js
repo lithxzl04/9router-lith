@@ -21,13 +21,13 @@ export default function Navigation() {
           type="button"
           className="flex items-center gap-3 cursor-pointer bg-transparent border-none p-0 min-w-0"
           onClick={() => router.push("/")}
-          aria-label="9Router-Kiyoshi home"
+          aria-label="9router-lith home"
         >
           <div className="flex items-center justify-center size-8 rounded-chip bg-brand-800 text-white shrink-0">
             <span className="material-symbols-outlined text-[19px]" aria-hidden="true">hub</span>
           </div>
           <span className="text-text-main text-lg font-semibold tracking-tight truncate">
-            9Router-Kiyoshi
+            9router-lith
           </span>
         </button>
 

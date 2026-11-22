@@ -14,8 +14,8 @@ import {
 } from "recharts";
 import Card from "@/shared/components/Card";
 
-// Chart palette: forest green, brass, clay, sage, ochre
-const COLORS = ["#2B4937", "#8B6A3F", "#4A6547", "#B8442A", "#C0A175", "#6E8A68", "#203A2B", "#A88755"];
+// Chart palette: amethyst, violet, lavender, deep purple
+const COLORS = ["#6D28D9", "#8B5CF6", "#A78BFA", "#C4B5FD", "#4C1D95", "#7C3AED", "#5B21B6", "#DDD6FE"];
 
 const fmtTokens = (n) => {
   if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`;

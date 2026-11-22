@@ -1,7 +1,7 @@
 export default function manifest() {
   return {
-    name: '9Router-Kiyoshi - AI Infrastructure Management',
-    short_name: '9Router-Kiyoshi',
+    name: '9router-lith - AI Infrastructure Management',
+    short_name: '9router-lith',
     description: 'One endpoint for all your AI providers. Manage keys, monitor usage, and scale effortlessly.',
     start_url: '/',
     display: 'standalone',

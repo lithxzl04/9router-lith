@@ -36,8 +36,8 @@ export const TRANSFORMS = [
     id: "b64enc",
     label: "Base64 encode",
     hasOption: true,
-    optionLabel: "ulang (N×)",
-    hint: "Encode base64 berulang N kali (1 = sekali).",
+    optionLabel: "repeat (N×)",
+    hint: "Repeat base64 encoding N times (1 = once).",
     apply: (t, opt) => {
       const n = Math.max(1, Math.min(8, Number(opt) || 1));
       let out = t;
@@ -64,8 +64,8 @@ export const TRANSFORMS = [
     id: "rotn",
     label: "ROT-N",
     hasOption: true,
-    optionLabel: "geser (N)",
-    hint: "Geser huruf A–Z sebanyak N posisi (caesar cipher).",
+    optionLabel: "shift (N)",
+    hint: "Shift letters A–Z by N positions (Caesar cipher).",
     apply: (t, opt) => {
       const n = ((Number(opt) || 0) % 26 + 26) % 26;
       if (!n) return t;
@@ -87,10 +87,10 @@ export const TRANSFORMS = [
   },
   {
     id: "zerowidth",
-    label: "Zero-width (sisip tak-terlihat)",
+    label: "Zero-width (insert invisible)",
     hasOption: true,
-    optionLabel: "jarak N / @kata",
-    hint: "Sisip karakter zero-width tiap N char, atau tulis @kata untuk sisip tepat di DEPAN kata tersebut (mis. @admin).",
+    optionLabel: "every N / @word",
+    hint: "Insert a zero-width character every N chars, or write @word to insert right BEFORE that word (e.g. @admin).",
     apply: (t, opt) => {
       const raw = String(opt || "").trim();
       if (raw.startsWith("@")) {

@@ -1,21 +1,21 @@
-# Installing this fork — package: `9router-kiyoshi`
+# Installing this fork — package: `9router-lith`
 
 This fork ships the same way upstream (`decolua/9router`) does: a CLI launcher
 package whose `app/` contains the prebuilt dashboard bundle (`cli/scripts/build-cli.js`
-produces it). This fork builds as its own npm package **`9router-kiyoshi`** (binary
-`9router-kiyoshi`), so it can coexist with the official `9router` install. The
+produces it). This fork builds as its own npm package **`9router-lith`** (binary
+`9router-lith`), so it can coexist with the official `9router` install. The
 public-registry name `9router` belongs to upstream and is untouched.
 
 ## Quick start (recommended for contributors / new users)
 
-This is a **fork/patch of `decolua/9router`** — same upstream code, plus Plinian
+This is a **fork/patch of `rifqi1146/9router-kiyoshi` & `decolua/9router`** — same upstream code, plus Kiyoshi/Plinian
 features. To rebuild and ship your changes into the running tray app in **one
 step**, use the Makefile (it handles the build → pack → install, and installs into
 the exact global prefix the tray actually loads from — a plain `npm i -g` can land
 in the wrong prefix and silently not update the tray):
 
 ```bash
-make 9router-kiyoshi     # build + pack + install; then relaunch the tray
+make 9router-lith        # build + pack + install; then relaunch the tray
 ```
 
 `make` (no args) prints help. Prefer this over the manual steps below.

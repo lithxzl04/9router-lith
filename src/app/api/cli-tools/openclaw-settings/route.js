@@ -285,7 +285,7 @@ export async function DELETE() {
 
     return NextResponse.json({
       success: true,
-      message: "9Router-Kiyoshi settings removed successfully",
+      message: "9router-lith settings removed successfully",
     });
   } catch (error) {
     console.log("Error resetting openclaw settings:", error);

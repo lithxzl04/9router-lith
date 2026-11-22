@@ -50,7 +50,7 @@ import { writeFile } from "node:fs/promises";
 const r = await fetch(`${process.env.NINEROUTER_URL}/v1/audio/speech`, {
   method: "POST",
   headers: { "Authorization": `Bearer ${process.env.NINEROUTER_KEY}`, "Content-Type": "application/json" },
-  body: JSON.stringify({ model: "el/eleven_multilingual_v2", input: "Xin chào" }),
+  body: JSON.stringify({ model: "el/eleven_multilingual_v2", input: "Hello" }),
 });
 await writeFile("speech.mp3", Buffer.from(await r.arrayBuffer()));
 ```
