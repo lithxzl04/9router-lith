@@ -80,8 +80,8 @@ export async function handleChat(request, clientRawRequest = null) {
     log.debug("AUTH", "No API key provided (local mode)");
   }
 
-  // Per-request payload override (dashboard A/B test "test" arm). The
-  // developer relay (src/app/api/developer/chat/route.js) stashes it here;
+  // Per-request payload override (legacy dashboard A/B test "test" arm). The
+  // old developer relay stashed it here;
   // it must NOT reach the upstream provider, so strip it after capture.
   // Captured into a live object and forwarded to handleSingleModelChat as an
   // explicit argument. It CANNOT be a standalone local: the CLI production

@@ -359,7 +359,7 @@ export { stripCategoryFlag as stripCustomPayloadFlag };
 export { slugify as customSlugify };
 
 
-// id -> file row for the /api/developer/custom-payload list endpoint
+// id -> file row for the custom-payload listing
 export function getCustomPayloads() {
   const dir = getCustomDir();
   if (!existsSync(dir)) return [];
@@ -464,7 +464,7 @@ export function isExternalPayloadCarrier(id, detect) {
   return marker;
 }
 
-// ── Custom payload edit helpers (dashboard /dashboard/custom-payloads) ──
+// ── Custom payload edit helpers (custom-payloads store) ──
 //
 // The id IS the filename slug, so "rename" = rename the file. Keeps the
 // extension, slugifies the stem with the same rules as the upload path

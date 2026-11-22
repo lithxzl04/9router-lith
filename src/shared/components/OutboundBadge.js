@@ -71,7 +71,7 @@ export default function OutboundBadge() {
         </ul>
         <p className="mt-2 text-[10px] text-text-muted">
           Core proxying (chat → your chosen provider) always runs and is not listed here. Toggle individual items
-          in the Transparency tab (Developer), or in Settings.
+          in Settings.
         </p>
       </div>
     </details>

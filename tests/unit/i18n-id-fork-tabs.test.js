@@ -13,11 +13,8 @@ const root = join(here, "..", "..");
 const dict = JSON.parse(readFileSync(join(root, "public/i18n/literals/id.json"), "utf8"));
 
 const COMPONENTS = [
-  "src/app/(dashboard)/dashboard/payload/GlobalInjectionClient.js",
-  "src/app/(dashboard)/dashboard/payload/PayloadTabClient.js",
   "src/app/(dashboard)/dashboard/penetration/PenetrationTabClient.js",
   "src/app/(dashboard)/dashboard/strix/StrixTabClient.js",
-  "src/app/(dashboard)/dashboard/custom-payloads/CustomPayloadsClient.js",
 ];
 
 // Material Symbols render their icon name as the ligature text, and the runtime
