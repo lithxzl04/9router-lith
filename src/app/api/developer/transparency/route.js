@@ -1,0 +1,110 @@
+import { getGodmodePrompt } from "open-sse/payload/godmodePayloads.js";
+import { getPlinianPrompt } from "open-sse/payload/plinianPrompts.js";
+import { spliceCarrier } from "open-sse/payload/payloadCatalog.js";
+import { detect, estimateTokenSaver, classifyPrompt } from "@/shared/lib/injectionDetect.js";
+
+export const runtime = "nodejs";
+
+/**
+ * Red-Team Transparency: reconstruct what the gateway injects under the
+ * unified Global Injection card — register (Plinian-style) + G0DM0D3
+ * payload — estimate token-saver impact on a sample tool_result, and run
+ * injection/leak detection on the outbound request.
+ *
+ * Accepts the unified `injection` shape:
+ *   { enabled, level, godmodeLevel, godmodeCustom, identity }
+ * Falls back to the legacy separate `godmode` + `plinian` objects for
+ * any caller that has not been migrated yet.
+ */
+export async function POST(request) {
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return Response.json({ error: { message: "Invalid JSON body" } }, { status: 400 });
+  }
+
+  // Unified shape: body.injection = { enabled, level, godmodeLevel, godmodeCustom, identity }
+  // Legacy: body.godmode + body.plinian
+  const unified = body?.injection;
+  const legacy = {
+    godmode: body?.godmode || {},
+    plinian: body?.plinian || {},
+  };
+
+  let enabled = false;
+  let registerLevel = "standard";
+  let identity = "";
+  let godmodeLevel = "classic";
+  let godmodeCustom = "";
+
+  if (unified && typeof unified === "object") {
+    enabled = !!unified.enabled;
+    registerLevel = typeof unified.level === "string" ? unified.level : "standard";
+    identity = typeof unified.identity === "string" ? unified.identity : "";
+    godmodeLevel = typeof unified.godmodeLevel === "string" ? unified.godmodeLevel : "classic";
+    godmodeCustom = typeof unified.godmodeCustom === "string" ? unified.godmodeCustom : "";
+  } else {
+    enabled = !!legacy.godmode?.enabled || !!legacy.plinian?.enabled;
+    registerLevel = legacy.plinian?.level || "standard";
+    identity = typeof legacy.plinian?.identity === "string" ? legacy.plinian.identity : "";
+    godmodeLevel = legacy.godmode?.level || "classic";
+    godmodeCustom = typeof legacy.godmode?.custom === "string" ? legacy.godmode.custom : "";
+  }
+
+  // Build the register text. A custom register (from the UI editor) overrides
+  // the preset level entirely — mirrors injectGlobal() in open-sse/rtk/
+  // globalInject.js, which does exactly this. Identity prefixes in both cases.
+  const registerCustom = typeof unified?.registerCustom === "string"
+    ? unified.registerCustom
+    : typeof legacy.plinian?.registerCustom === "string" ? legacy.plinian.registerCustom : "";
+
+  let registerText = "";
+  if (enabled) {
+    if (registerCustom.trim()) {
+      registerText = registerCustom.trim();
+      if (identity && identity.trim()) {
+        registerText = `${identity.trim()}\n\n---\n\n${registerText}`;
+      }
+    } else if (registerLevel) {
+      registerText = getPlinianPrompt(registerLevel);
+      if (identity && identity.trim()) {
+        registerText = `${identity.trim()}\n\n---\n\n${registerText}`;
+      }
+    }
+  }
+
+  // Build the G0DM0D3 payload text — exactly the selected variant.
+  let godmodeText = "";
+  if (enabled && godmodeLevel) {
+    godmodeText = getGodmodePrompt(godmodeLevel, godmodeCustom);
+  }
+
+  // v0.6.0 rework: carrier warp lives in the persona text (identity).
+  // When identity carries the [YOUR JAILBREAK HERE] slot, the main payload
+  // auto-splices into it — mirrors injectGlobal() in globalInject.js.
+  const identityTrimmed = String(identity || "").trim();
+  const carrierWarp = identityTrimmed.includes("[YOUR JAILBREAK HERE]");
+  const composedPayload = carrierWarp
+    ? spliceCarrier(identityTrimmed, godmodeText)
+    : godmodeText;
+
+  // Match live injection order: register first, composed payload second
+  const parts = [registerText, composedPayload].filter(Boolean);
+  const outboundSystem = parts.join("\n\n===\n\n");
+
+  const draft = typeof body?.draft === "string" ? body.draft : "";
+  const requestDetection = detect(`${outboundSystem}\n\n${draft}`);
+  const harmClassification = draft ? classifyPrompt(draft) : null;
+  const tokenSaver = estimateTokenSaver(typeof body?.tokenSample === "string" ? body.tokenSample : "");
+
+  return Response.json({
+    registerText,
+    godmodeText,
+    carrierWarp,
+    outboundSystem,
+    requestDetection,
+    harmClassification,
+    tokenSaver,
+  });
+}

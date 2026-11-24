@@ -114,7 +114,7 @@ a pure-JS fallback into `~/.9router/`). Known friction points:
 
 The fork tracks `decolua/9router` as `upstream`. Because Plinian features live in
 separate files (`open-sse/rtk/plinian.js`, `plinianPrompts.js`, `godmode.js`,
-`headroom.js`, …) that
+`headroom.js`, the `/dashboard/developer/*` pages, `plinianScoring.js`, …) that
 upstream never touches, pulling upstream in is conflict-free except for the version
 field (already handled — see Identity & versioning above).
 

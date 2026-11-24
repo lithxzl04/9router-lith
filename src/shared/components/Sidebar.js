@@ -31,8 +31,11 @@ const navItems = [
   { href: "/dashboard/token-saver", label: "Token Saver", icon: "savings" },
   // { href: "/dashboard/pxpipe", label: "PXPIPE", icon: "image" },
   { href: "/dashboard/cli-tools", label: "CLI Tools", icon: "terminal" },
+  { href: "/dashboard/developer", label: "Developer", icon: "developer_mode" },
   { href: "/dashboard/penetration", label: "Penetration", icon: "scanner" },
   { href: "/dashboard/strix", label: "Strix Skills", icon: "security" },
+  { href: "/dashboard/payload", label: "Jailbreaks", icon: "gavel" },
+  { href: "/dashboard/custom-payloads", label: "Custom Payloads", icon: "add_circle" },
 ];
 
 const debugItems = [
