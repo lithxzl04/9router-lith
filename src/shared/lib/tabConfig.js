@@ -206,6 +206,86 @@ export function tierTone(effectiveness) {
   return EFFECTIVENESS_TIERS[effectiveness]?.tone || EFFECTIVENESS_TIERS.current.tone;
 }
 
+// ── Developer skill menu (the 8 capability skills + entry skill) ───────────
+// Sourced from the repo /skills/* directories and the /dashboard/skills page.
+// These are the legitimate, production-safe surfaces that live on the
+// Developer tab. The `id` is the capability key; `href` deep-links to the
+// skill page / raw SKILL.md so the operator can copy it into any agent.
+
+export const DEV_SKILLS = [
+  {
+    id: "9router",
+    name: "9Router Entry",
+    desc: "Setup + index of all capabilities. Base URL, auth, model discovery.",
+    icon: "hub",
+    href: "/dashboard/skills",
+  },
+  {
+    id: "chat",
+    name: "Chat / code-gen",
+    desc: "Text completion, reasoning, code via OpenAI or Anthropic format.",
+    icon: "chat",
+    skillId: "9router-chat",
+    href: "/dashboard/developer",
+  },
+  {
+    id: "image",
+    name: "Image generation",
+    desc: "Text-to-image via DALL-E, Imagen, FLUX, MiniMax, SDWebUI.",
+    icon: "brush",
+    skillId: "9router-image",
+    href: "/dashboard/media-providers/image",
+  },
+  {
+    id: "video",
+    name: "Video generation",
+    desc: "Video via Luma, Runway, Kling, Grok Imagine.",
+    icon: "movie",
+    skillId: "9router-video",
+    href: "/dashboard/media-providers/video",
+  },
+  {
+    id: "tts",
+    name: "Text-to-Speech",
+    desc: "OpenAI / ElevenLabs / Edge / Google / Deepgram voices.",
+    icon: "record_voice_over",
+    skillId: "9router-tts",
+    href: "/dashboard/media-providers/tts",
+  },
+  {
+    id: "stt",
+    name: "Speech-to-Text",
+    desc: "Transcribe audio via Whisper, Groq, Gemini, Deepgram.",
+    icon: "mic",
+    skillId: "9router-stt",
+    href: "/dashboard/media-providers/stt",
+  },
+  {
+    id: "embeddings",
+    name: "Embeddings",
+    desc: "Vectors for RAG / semantic search via OpenAI, Gemini, Mistral.",
+    icon: "scatter_plot",
+    skillId: "9router-embeddings",
+    href: "/dashboard/media-providers/embedding",
+  },
+  {
+    id: "web-search",
+    name: "Web Search",
+    desc: "Web + X search via Tavily / Exa / Brave / Serper / SearXNG.",
+    icon: "travel_explore",
+    skillId: "9router-web-search",
+    href: "/dashboard/media-providers/web",
+  },
+  {
+    id: "web-fetch",
+    name: "Web Fetch",
+    desc: "URL → markdown / text / HTML via Firecrawl, Jina, Tavily, Exa.",
+    icon: "language",
+    skillId: "9router-web-fetch",
+    href: "/dashboard/media-providers/web",
+  },
+];
+
 // ── Env control readers ─────────────────────────────────────────────────────
 // Build-time (inlined) + runtime (from /api/tabs) resolution. The client
 // component pulls the authoritative flags from the server; the NEXT_PUBLIC
